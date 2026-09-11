@@ -30,8 +30,14 @@
   container-type: size;
   isolation: isolate;
   background: #0d4cb7;
-  box-shadow: 0 18px 42px rgb(6 12 44 / 45%);
   user-select: none;
+  /* The scene melts into the app on every side instead of ending on a card
+     edge; the message bubble sits outside this box and stays crisp. */
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
 }
 
 .stage > * {
@@ -103,18 +109,152 @@
   100% { transform: translate3d(0, 44%, 0) rotate(8deg) scale(0.96); }
 }
 
-/* ---------- the water in front of the submerged whale ---------- */
-
-.waterline {
+/* ---------- the animated sea ----------
+   Five wave strips cut from the high-detail sea illustration. Each strip is
+   shown twice end to end, so translating the pair by half its width loops
+   without a seam; the layers differ in speed, direction, and bob. */
+.animatedSea {
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: auto;
-  animation: water-sway 11s ease-in-out infinite alternate;
+  height: 46%;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-@keyframes water-sway {
-  from { transform: translate3d(-4px, 0, 0); }
-  to { transform: translate3d(4px, 1px, 0); }
+.waveLayer {
+  position: absolute;
+  left: -3%;
+  width: 106%;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.waveTrack {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  will-change: transform;
+}
+
+.waveTrack img {
+  display: block;
+  flex: 0 0 50%;
+  width: 50%;
+  height: 100%;
+  object-fit: fill;
+  max-width: none;
+}
+
+.far {
+  bottom: 49%;
+  height: 21%;
+  opacity: 0.46;
+  animation: bob-far 7.8s ease-in-out infinite;
+}
+
+.far .waveTrack { animation: flow-left 30s linear infinite; }
+
+.midBack {
+  bottom: 34%;
+  height: 28%;
+  opacity: 0.52;
+  animation: bob-mid-back 6.6s ease-in-out infinite;
+}
+
+.midBack .waveTrack { animation: flow-right 23s linear infinite; }
+
+.midFront {
+  bottom: 20%;
+  height: 31%;
+  opacity: 0.58;
+  animation: bob-mid-front 5.7s ease-in-out infinite;
+}
+
+.midFront .waveTrack { animation: flow-left 17s linear infinite; }
+
+.foam {
+  bottom: 18%;
+  height: 24%;
+  opacity: 0.64;
+  animation: bob-foam 4.9s ease-in-out infinite;
+}
+
+.foam .waveTrack { animation: flow-right 13s linear infinite; }
+
+.front {
+  bottom: -3%;
+  height: 43%;
+  opacity: 0.67;
+  animation: bob-front 4.4s ease-in-out infinite;
+}
+
+.front .waveTrack { animation: flow-left 10s linear infinite; }
+
+@keyframes flow-left {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes flow-right {
+  from { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes bob-far {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes bob-mid-back {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(3px); }
+  72% { transform: translateY(-2px); }
+}
+
+@keyframes bob-mid-front {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+  76% { transform: translateY(2px); }
+}
+
+@keyframes bob-foam {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes bob-front {
+  0%, 100% { transform: translateY(0); }
+  34% { transform: translateY(5px); }
+  70% { transform: translateY(-3px); }
+}
+
+/* A band of light crossing the swell, so the whole sea reads as moving. */
+.seaShimmer {
+  bottom: 15%;
+  left: -25%;
+  width: 150%;
+  height: 20%;
+  opacity: 0.18;
+  filter: blur(8px);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0%) 0%,
+    rgb(255 255 255 / 20%) 16%,
+    rgb(255 255 255 / 2%) 32%,
+    rgb(255 255 255 / 18%) 52%,
+    rgb(255 255 255 / 2%) 70%,
+    rgb(255 255 255 / 17%) 86%,
+    rgb(255 255 255 / 0%) 100%
+  );
+  transform: skewX(-10deg);
+  animation: shimmer 9s linear infinite;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-10%) skewX(-10deg); }
+  to { transform: translateX(10%) skewX(-10deg); }
 }
 
 /* ---------- the spray: one burst going up, one coming down ---------- */
@@ -186,11 +326,72 @@
 
 .bubble {
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  width: 286px;
+  top: 4%;
+  left: 5%;
+  width: 62%;
+  min-width: 232px;
   pointer-events: none;
-  animation: notice-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation:
+    notice-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    bubble-float 4.1s ease-in-out 0.5s infinite alternate;
+}
+
+@keyframes bubble-float {
+  from { transform: translateY(0); }
+  to { transform: translateY(-6px); }
+}
+
+/* The three bubbles the whale blows on the way to the message. */
+.bubbleDot {
+  position: absolute;
+  border-radius: 50%;
+  corner-shape: round;
+  background: radial-gradient(circle at 33% 28%, #fff 0 15%, #c8edff 22%, #59adff 68%, rgb(55 145 255 / 15%) 100%);
+  box-shadow: 0 4px 12px rgb(38 120 255 / 22%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dot1 {
+  top: 24%;
+  left: 39%;
+  width: 11px;
+  height: 11px;
+  animation: bubble-rise-1 2.7s ease-in-out infinite;
+}
+
+.dot2 {
+  top: 30%;
+  left: 42%;
+  width: 8px;
+  height: 8px;
+  animation: bubble-rise-2 2.9s ease-in-out infinite;
+}
+
+.dot3 {
+  top: 35%;
+  left: 45%;
+  width: 6px;
+  height: 6px;
+  animation: bubble-rise-3 2.5s ease-in-out infinite;
+}
+
+@keyframes bubble-rise-1 {
+  0% { opacity: 0.05; transform: translate(0, 12px) scale(0.7); }
+  45% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(-14px, -22px) scale(1.12); }
+}
+
+@keyframes bubble-rise-2 {
+  0% { opacity: 0.05; transform: translate(0, 10px) scale(0.7); }
+  45% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(-8px, -18px) scale(1.08); }
+}
+
+@keyframes bubble-rise-3 {
+  0% { opacity: 0.05; transform: translate(0, 8px) scale(0.7); }
+  40% { opacity: 0.88; }
+  100% { opacity: 0; transform: translate(-5px, -14px) scale(1.05); }
 }
 
 .bubbleArt {
@@ -246,12 +447,15 @@
    surface, the spray stays up, and the sea stops moving. */
 @media (prefers-reduced-motion: reduce) {
   .backdrop,
+  .waveLayer,
+  .waveTrack,
+  .seaShimmer,
   .whaleBob,
   .whale,
-  .waterline,
   .splash,
   .drop,
-  .bubble {
+  .bubble,
+  .bubbleDot {
     animation: none;
   }
 

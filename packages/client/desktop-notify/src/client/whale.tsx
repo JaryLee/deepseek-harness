@@ -19,7 +19,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { NotifyNotice } from './engine.ts'
 import type { WhaleState } from './whale-store.ts'
 import {
-  ART_BACKDROP, ART_BUBBLE, ART_SPLASH, ART_WATERLINE, ART_WHALE, type ArtLayer,
+  ART_BACKDROP, ART_BUBBLE, ART_SPLASH, ART_WAVES, ART_WHALE, type ArtLayer,
 } from './art.ts'
 import { NS } from './locales.ts'
 import css from './whale.module.css'
@@ -39,6 +39,15 @@ interface Droplet {
   /** Delay inside the cycle, in seconds. */
   readonly delay: number
 }
+
+/** The five scrolling wave strips, back to front, with the class each one uses. */
+const WAVES: readonly { key: keyof typeof ART_WAVES; className: string }[] = [
+  { key: 'far', className: 'far' },
+  { key: 'midBack', className: 'midBack' },
+  { key: 'midFront', className: 'midFront' },
+  { key: 'foam', className: 'foam' },
+  { key: 'front', className: 'front' },
+]
 
 /** Six droplets ride the launch and six ride the entry, as the reference does. */
 const DROPLETS: readonly Droplet[] = [
@@ -114,12 +123,22 @@ export function WhaleStage(props: WhaleStageProps) {
     <div className={css.layer} data-whale-scene={props.notice.sessionId}>
       <div className={css.stage}>
         <img className={css.backdrop} src={ART_BACKDROP} alt="" aria-hidden="true" />
+        <div className={css.animatedSea} aria-hidden="true">
+          {WAVES.map(wave => (
+            <div key={wave.key} className={`${css.waveLayer} ${css[wave.className]}`}>
+              <div className={css.waveTrack}>
+                <img src={ART_WAVES[wave.key]} alt="" aria-hidden="true" />
+                <img src={ART_WAVES[wave.key]} alt="" aria-hidden="true" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className={css.seaShimmer} aria-hidden="true" />
         <div className={css.whalePos} style={boxOf(ART_WHALE)}>
           <div className={css.whaleBob}>
             <img className={css.whale} src={ART_WHALE.src} alt="" aria-hidden="true" data-whale-mark="whale" />
           </div>
         </div>
-        <img className={css.waterline} style={{ top: `${ART_WATERLINE.top}%` }} src={ART_WATERLINE.src} alt="" aria-hidden="true" />
         <img className={`${css.splash} ${css.splashLaunch}`} style={boxOf(ART_SPLASH)} src={ART_SPLASH.src} alt="" aria-hidden="true" />
         <img className={`${css.splash} ${css.splashLand}`} style={boxOf(ART_SPLASH)} src={ART_SPLASH.src} alt="" aria-hidden="true" />
         <div className={css.droplets} aria-hidden="true">
@@ -127,6 +146,9 @@ export function WhaleStage(props: WhaleStageProps) {
             <i key={`${drop.x}-${drop.y}`} className={css.drop} style={dropStyle(drop)} />
           ))}
         </div>
+        <span className={`${css.bubbleDot} ${css.dot1}`} aria-hidden="true" />
+        <span className={`${css.bubbleDot} ${css.dot2}`} aria-hidden="true" />
+        <span className={`${css.bubbleDot} ${css.dot3}`} aria-hidden="true" />
       </div>
       <div className={css.bubble} data-whale-bubble="" role="status" aria-live="polite">
         <img className={css.bubbleArt} src={ART_BUBBLE.src} alt="" aria-hidden="true" />

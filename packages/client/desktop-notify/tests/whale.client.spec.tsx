@@ -47,13 +47,16 @@ describe('WhaleStage', () => {
       .toBe(NOTICE.sessionId)
   })
 
-  it('stages the artwork layers: scene, whale, waterline, two sprays, and the bubble', () => {
+  it('stages the artwork layers: scene, five sea strips, whale, sprays, and bubble', () => {
     stage()
     expect(document.querySelectorAll('[data-whale-mark]')).toHaveLength(1)
     expect(document.querySelector('[data-whale-mark]')?.tagName).toBe('IMG')
+    const tracks = [...document.querySelectorAll('[class*="waveTrack"]')]
+    expect(tracks).toHaveLength(5)
+    for (const track of tracks) expect(track.querySelectorAll('img')).toHaveLength(2)
     const sources = [...document.querySelectorAll('[data-whale-scene] img')]
       .map(image => image.getAttribute('src') ?? '')
-    expect(sources).toHaveLength(6)
+    expect(sources).toHaveLength(15)
     for (const source of sources) expect(source.startsWith('data:image/webp;base64,')).toBe(true)
     expect(document.querySelectorAll('i')).toHaveLength(12)
   })
