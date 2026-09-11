@@ -231,7 +231,11 @@ export function ratesAt(
   }
 }
 
-/** Sum the three prompt-side billed buckets (the total billed prompt tokens). */
+/**
+ * Sum the three prompt-side billed buckets (the total billed prompt tokens).
+ * @param usage - normalized billed token buckets.
+ * @returns the billed prompt token count.
+ */
 export function boundedInputTokens(usage: UsageBuckets): number {
   return usage.uncachedInput + usage.cacheRead + usage.cacheWrite
 }

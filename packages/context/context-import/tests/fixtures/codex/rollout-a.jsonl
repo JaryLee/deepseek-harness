@@ -1,0 +1,25 @@
+{"timestamp":"2026-08-27T10:00:00.000Z","type":"session_meta","payload":{"session_id":"sess-a","id":"sess-a","cwd":"D:\\work\\demo","model_provider":"openai"}}
+{"timestamp":"2026-08-27T10:00:00.100Z","type":"turn_context","payload":{"turn_id":"t1","cwd":"D:\\work\\demo","model":"gpt-5"}}
+{"timestamp":"2026-08-27T10:00:00.200Z","type":"response_item","payload":{"type":"message","id":"m1","role":"developer","content":[{"type":"input_text","text":"app instructions"}]}}
+{"timestamp":"2026-08-27T10:00:00.300Z","type":"response_item","payload":{"type":"message","id":"m2","role":"user","content":[{"type":"input_text","text":"<environment_context>cwd"}]}}
+{"timestamp":"2026-08-27T10:00:00.400Z","type":"response_item","payload":{"type":"message","id":"m3","role":"user","content":[{"type":"input_text","text":"hello codex"},{"type":"input_image","image_url":"data:image/png;base64,AA"}]}}
+{"timestamp":"2026-08-27T10:00:00.500Z","type":"response_item","payload":{"type":"reasoning","id":"r1","summary":[]}}
+{"timestamp":"2026-08-27T10:00:01.000Z","type":"response_item","payload":{"type":"message","id":"m4","role":"assistant","content":[{"type":"output_text","text":"hi there"}]}}
+{"timestamp":"2026-08-27T10:00:02.000Z","type":"response_item","payload":{"type":"function_call","id":"fc1","name":"inspect","namespace":"mcp__fastctx","arguments":"{\"file_path\":\"a.ts\"}","call_id":"c1"}}
+{"timestamp":"2026-08-27T10:00:03.000Z","type":"response_item","payload":{"type":"function_call_output","id":"fo1","call_id":"c1","output":"file contents"}}
+{"timestamp":"2026-08-27T10:00:04.000Z","type":"response_item","payload":{"type":"custom_tool_call","id":"fc2","name":"exec","input":"run()","call_id":"c2"}}
+{"timestamp":"2026-08-27T10:00:05.000Z","type":"response_item","payload":{"type":"custom_tool_call_output","id":"fo2","call_id":"c2","output":{"ok":true}}}
+{"timestamp":"2026-08-27T10:00:06.000Z","type":"response_item","payload":{"type":"message","id":"m5","role":"user","content":"plain string prompt"}}
+{"timestamp":"2026-08-27T10:00:07.000Z","type":"response_item","payload":{"type":"message","id":"m6","role":"assistant","content":[{"type":"output_text"}]}}
+{"timestamp":"2026-08-27T10:00:08.000Z","type":"response_item","payload":{"type":"message","id":"m7","role":"assistant","content":42}}
+{"timestamp":"2026-08-27T10:00:09.000Z","type":"response_item","payload":{"type":"message","id":"m8","role":"assistant","content":[]}}
+{"timestamp":"2026-08-27T10:00:10.000Z","type":"event_msg","payload":{"type":"token_count"}}
+{"timestamp":"2026-08-27T10:00:11.000Z","type":"compacted","payload":{"message":"rolled up summary"}}
+{"timestamp":"2026-08-27T10:00:12.000Z","type":"mystery","payload":{}}
+{"timestamp":"2026-08-27T10:00:13.000Z","type":"response_item"}
+{"timestamp":"2026-08-27T10:00:14.000Z","type":"response_item","payload":{"type":"function_call","name":"broken"}}
+{"timestamp":"2026-08-27T10:00:15.000Z","type":"response_item","payload":{"type":"function_call_output","output":"x"}}
+{"timestamp":"2026-08-27T10:00:16.000Z","type":"response_item","payload":{"type":"mystery_item","id":"x1"}}
+
+not json at all
+[1,2,3]

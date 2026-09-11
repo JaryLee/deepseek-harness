@@ -772,6 +772,66 @@
       "source": "packages/context/session-reference/src/config.ts"
     },
     {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignTool",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignSessionSummary",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignMessageEntry",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignCallEntry",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignResultEntry",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignEntry",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignSkip",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignTranscript",
+      "source": "packages/context/context-import/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "TranslatedTranscript",
+      "source": "packages/context/context-import/src/translate.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ForeignDrop",
+      "source": "packages/context/context-import/src/translate.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "ImportOutcome",
+      "source": "packages/context/context-import/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/context-import.md",
+      "symbol": "InjectOutcome",
+      "source": "packages/context/context-import/src/index.ts"
+    },
+    {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolOutputDefinition",
       "source": "packages/core/tools/src/index.ts"

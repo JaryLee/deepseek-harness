@@ -1,6 +1,6 @@
 import { readdir, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { basename, join } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { isSyntheticUserText } from './codex.ts'
 import { asRecord, readJsonLines, stringField } from './jsonl.ts'
 import type { ForeignSessionSummary, ForeignTool } from './types.ts'
@@ -268,7 +268,13 @@ export async function listCodexSessions(
   titles: ReadonlyMap<string, string> = new Map(),
 ): Promise<ForeignSessionSummary[]> {
   const files = await walkJsonl(root)
-  const byId = new Map<string, { paths: string[]; sizeBytes: number; updatedAt: string; cwd?: string; prompt?: string }>()
+  const byId = new Map<string, {
+    paths: string[]
+    sizeBytes: number
+    updatedAt: string
+    cwd?: string | undefined
+    prompt?: string | undefined
+  }>()
   for (const file of files) {
     const head = await codexHead(file.path)
     if (head.id === undefined) continue
@@ -328,8 +334,83 @@ export async function listClaudeSessions(root: string): Promise<ForeignSessionSu
  */
 function sortSummaries(summaries: ForeignSessionSummary[]): ForeignSessionSummary[] {
   return summaries.sort((left, right) => {
+    /* v8 ignore next -- both listings date every summary from a file mtime */
     const at = left.updatedAt ?? ''
+    /* v8 ignore next -- both listings date every summary from a file mtime */
     const bt = right.updatedAt ?? ''
     return at === bt ? left.id.localeCompare(right.id) : bt.localeCompare(at)
   })
+}
+
+/**
+ * Detect which foreign dialect wrote a session log.
+ * @param sourcePath - Session file to read.
+ * @returns The dialect, or `undefined` when the head matches neither.
+ */
+export async function detectForeignTool(sourcePath: string): Promise<ForeignTool | undefined> {
+  let tool: ForeignTool | undefined
+  let lines = 0
+  await readJsonLines(sourcePath, {
+    visit: (value) => {
+      lines += 1
+      const record = asRecord(value)
+      if (record === undefined) return
+      const type = stringField(record, 'type')
+      if (type === 'session_meta' || type === 'response_item') tool = 'codex'
+      else if (stringField(record, 'sessionId') !== undefined || asRecord(record.message) !== undefined) tool = 'claude-code'
+    },
+    onMalformed: () => {},
+    stop: () => tool !== undefined || lines >= HEAD_LINES,
+  })
+  return tool
+}
+
+/**
+ * Resolve every rollout file of the logical Codex session one file belongs to.
+ *
+ * Shards are found by listing the roots implied by the file's own location
+ * first, then the configured root, and matching the file against the logical
+ * session it was grouped into.
+ *
+ * @param sourcePath - Any rollout file of the session.
+ * @param codexRoot - Configured Codex session root.
+ * @returns The session's rollout files in read order; the file alone when no listing matches it.
+ */
+export async function resolveCodexShards(sourcePath: string, codexRoot: string): Promise<string[]> {
+  const target = normalizePath(sourcePath)
+  const roots = new Set([...impliedCodexRoots(sourcePath), codexRoot])
+  for (const root of roots) {
+    const summaries = await listCodexSessions(root)
+    const found = summaries.find(summary => summary.sourcePaths.some(path => normalizePath(path) === target))
+    if (found !== undefined) return [...found.sourcePaths]
+  }
+  return [sourcePath]
+}
+
+/**
+ * Compare two paths as the same file on a case-insensitive platform.
+ * @param path - Path to normalize.
+ * @returns The resolved path in a single case.
+ */
+function normalizePath(path: string): string {
+  return resolve(path).toLowerCase()
+}
+
+/**
+ * Derive the Codex roots one session file's location implies.
+ * @param sourcePath - Any rollout file.
+ * @returns `sessions` and `archived_sessions` roots under the same home; empty when the file sits outside either.
+ */
+function impliedCodexRoots(sourcePath: string): string[] {
+  let current = dirname(resolve(sourcePath))
+  for (;;) {
+    const base = basename(current)
+    if (base === 'sessions' || base === 'archived_sessions') {
+      const home = dirname(current)
+      return [join(home, 'sessions'), join(home, 'archived_sessions')]
+    }
+    const parent = dirname(current)
+    if (parent === current) return []
+    current = parent
+  }
 }

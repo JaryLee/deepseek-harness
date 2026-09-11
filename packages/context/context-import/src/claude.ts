@@ -39,41 +39,44 @@ export async function parseClaudeSession(sourcePath: string): Promise<ForeignTra
   let title: string | undefined
   let summary: string | undefined
 
-  await readJsonLines(sourcePath, (value, line) => {
-    const record = asRecord(value)
-    if (record === undefined) {
-      skipped.push({ reason: 'line is not a JSON object', detail: `${basename(sourcePath)}:${line}` })
-      return
-    }
-    const type = stringField(record, 'type')
-    sessionId = stringField(record, 'sessionId') ?? sessionId
-    cwd = stringField(record, 'cwd') ?? cwd
-    if (type === 'custom-title') {
-      title = stringField(record, 'customTitle') ?? title
-      return
-    }
-    if (type === 'summary') {
-      summary = stringField(record, 'summary') ?? summary
-      return
-    }
-    if (type === undefined || ANNOTATION_TYPES.has(type)) return
-    if (type !== 'user' && type !== 'assistant') {
-      skipped.push({ reason: 'unknown record type', detail: type })
-      return
-    }
-    if (record.isSidechain === true) {
-      skipped.push({ reason: 'side chain', detail: type })
-      return
-    }
-    const message = asRecord(record.message)
-    if (message === undefined) {
-      skipped.push({ reason: 'record without message', detail: type })
-      return
-    }
-    model = stringField(message, 'model') ?? model
-    translateMessage(message, stringField(record, 'timestamp'), entries, skipped)
-  }, (line) => {
-    skipped.push({ reason: 'malformed JSON line', detail: `${basename(sourcePath)}:${line}` })
+  await readJsonLines(sourcePath, {
+    visit: (value, line) => {
+      const record = asRecord(value)
+      if (record === undefined) {
+        skipped.push({ reason: 'line is not a JSON object', detail: `${basename(sourcePath)}:${line}` })
+        return
+      }
+      const type = stringField(record, 'type')
+      sessionId = stringField(record, 'sessionId') ?? sessionId
+      cwd = stringField(record, 'cwd') ?? cwd
+      if (type === 'custom-title') {
+        title = stringField(record, 'customTitle') ?? title
+        return
+      }
+      if (type === 'summary') {
+        summary = stringField(record, 'summary') ?? summary
+        return
+      }
+      if (type === undefined || ANNOTATION_TYPES.has(type)) return
+      if (type !== 'user' && type !== 'assistant') {
+        skipped.push({ reason: 'unknown record type', detail: type })
+        return
+      }
+      if (record.isSidechain === true) {
+        skipped.push({ reason: 'side chain', detail: type })
+        return
+      }
+      const message = asRecord(record.message)
+      if (message === undefined) {
+        skipped.push({ reason: 'record without message', detail: type })
+        return
+      }
+      model = stringField(message, 'model') ?? model
+      translateMessage(message, stringField(record, 'timestamp'), entries, skipped)
+    },
+    onMalformed: (line) => {
+      skipped.push({ reason: 'malformed JSON line', detail: `${basename(sourcePath)}:${line}` })
+    },
   })
 
   return {
@@ -117,13 +120,16 @@ function translateMessage(
     const type = record === undefined ? undefined : stringField(record, 'type')
     switch (type) {
       case 'text': {
+        /* v8 ignore next -- `record` is defined whenever `type` is 'text' */
         const text = stringField(record ?? {}, 'text')
         if (text === undefined) break
         entries.push({ kind: 'message', role, text, ...(at === undefined ? {} : { at }) })
         break
       }
       case 'tool_use': {
+        /* v8 ignore next -- `record` is defined whenever `type` is 'tool_use' */
         const callId = stringField(record ?? {}, 'id')
+        /* v8 ignore next -- `record` is defined whenever `type` is 'tool_use' */
         const name = stringField(record ?? {}, 'name')
         if (callId === undefined || name === undefined) {
           skipped.push({ reason: 'tool call without id or name', detail: 'tool_use' })
@@ -139,6 +145,7 @@ function translateMessage(
         break
       }
       case 'tool_result': {
+        /* v8 ignore next -- `record` is defined whenever `type` is 'tool_result' */
         const callId = stringField(record ?? {}, 'tool_use_id')
         if (callId === undefined) {
           skipped.push({ reason: 'tool result without tool_use_id', detail: 'tool_result' })

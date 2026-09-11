@@ -1,0 +1,2 @@
+{"timestamp":"2026-08-27T11:00:00.000Z","type":"response_item","payload":{"type":"message","id":"legacy-1","role":"user","content":[{"type":"input_text","text":"legacy prompt"}]}}
+{"timestamp":"2026-08-27T11:00:01.000Z","type":"response_item","payload":{"type":"message","id":"legacy-2","role":"assistant","content":[{"type":"output_text","text":"legacy reply"}]}}

@@ -730,6 +730,38 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'contextImport',
+    summary: 'The `contextImport` service: foreign listing plus both import modes.',
+    description: 'The `contextImport` service: foreign listing plus both import modes.',
+    methods: [
+      {
+        signature: 'list(): Promise<ForeignSessionSummary[]>',
+        description: 'List every importable foreign session.',
+        parameters: [],
+        returns: 'Summaries newest first, with the CLI\'s own conversation names when the CLI recorded one.',
+      },
+      {
+        signature: 'parse(sourcePath: string, tool?: ForeignTool): Promise<{ readonly transcript: ForeignTranscript readonly events: TranslatedTranscript[\'events\'] readonly dropped: readonly ForeignDrop[] }>',
+        description: 'Read one foreign session and translate it into a dsh session seed.',
+        parameters: [{ name: 'sourcePath', description: 'Session file, or any shard of a multi-file Codex session.' }, { name: 'tool', description: 'Dialect to read it as; omit to detect it from the log.' }],
+        returns: 'The transcript and its translated seed.',
+        throws: ['when the file is not a recognized foreign session or carries no conversation.'],
+      },
+      {
+        signature: 'importNewSession(options: { readonly sourcePath: string readonly sessionId: SessionId readonly cwd: string }): Promise<ImportOutcome>',
+        description: 'Create a new session seeded with a foreign conversation.',
+        parameters: [{ name: 'options', description: 'Session file, identity to publish under, and working directory.' }],
+        returns: 'The published session and what the translation left out.',
+      },
+      {
+        signature: 'injectIntoCurrent(options: { readonly agent: Agent readonly sourcePath: string }): Promise<InjectOutcome>',
+        description: 'Inject a reduced rendering of a foreign conversation into a live session.',
+        parameters: [{ name: 'options', description: 'Receiving agent and the foreign session file.' }],
+        returns: 'Whether anything was injected, with a one-line account.',
+      },
+    ],
+  },
+  {
     key: 'credentials',
     summary: 'Abstract credential service over two key spaces that answer two questions.',
     description: 'Abstract credential service over two key spaces that answer two questions.\n\nA CredentialRef answers "what is behind this environment-variable name", layered over the process environment, the provider-managed store, and `.env` files. One seam-wide rule binds that half: an empty stored value is absent everywhere — `resolve` skips it, `describe` reports it unconfigured — so a blank never masquerades as a configured secret.\n\nA CredentialKey answers "what credential does this plugin hold for this id". Nothing can layer here — an authorization grant has no environment to be read from — so presence of the record is the whole fact, and modifyRecord is the only write path because a correct write depends on the current value (a token refresh is read-decide-replace under one lock).',
@@ -4247,6 +4279,42 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface FinishReasonMap {\n    \'stop\': {\n        kind: \'stop\';\n    };\n    \'tool-calls\': {\n        kind: \'tool-calls\';\n    };\n    \'max-tokens\': {\n        kind: \'max-tokens\';\n    };\n    \'aborted\': {\n        kind: \'aborted\';\n        failure: LlmFailure;\n    };\n    \'error\': {\n        kind: \'error\';\n        failure: LlmFailure;\n    };\n}',
   },
   {
+    name: 'ForeignCallEntry',
+    declaration: 'export interface ForeignCallEntry {\n    readonly kind: \'call\';\n    readonly callId: string;\n    readonly name: string;\n    readonly arguments: string;\n    readonly at?: string;\n}',
+  },
+  {
+    name: 'ForeignDrop',
+    declaration: 'export interface ForeignDrop {\n    readonly kind: \'call\' | \'result\';\n    readonly callId: string;\n    readonly reason: string;\n}',
+  },
+  {
+    name: 'ForeignEntry',
+    declaration: 'export type ForeignEntry = ForeignMessageEntry | ForeignCallEntry | ForeignResultEntry;',
+  },
+  {
+    name: 'ForeignMessageEntry',
+    declaration: 'export interface ForeignMessageEntry {\n    readonly kind: \'message\';\n    readonly role: \'user\' | \'assistant\';\n    readonly text: string;\n    readonly at?: string;\n}',
+  },
+  {
+    name: 'ForeignResultEntry',
+    declaration: 'export interface ForeignResultEntry {\n    readonly kind: \'result\';\n    readonly callId: string;\n    readonly output: string;\n    readonly at?: string;\n}',
+  },
+  {
+    name: 'ForeignSessionSummary',
+    declaration: 'export interface ForeignSessionSummary {\n    readonly tool: ForeignTool;\n    readonly id: string;\n    readonly sourcePaths: readonly string[];\n    readonly title?: string;\n    readonly updatedAt?: string;\n    readonly cwd?: string;\n    readonly sizeBytes: number;\n}',
+  },
+  {
+    name: 'ForeignSkip',
+    declaration: 'export interface ForeignSkip {\n    readonly reason: string;\n    readonly detail?: string;\n}',
+  },
+  {
+    name: 'ForeignTool',
+    declaration: 'export type ForeignTool = \'codex\' | \'claude-code\';',
+  },
+  {
+    name: 'ForeignTranscript',
+    declaration: 'export interface ForeignTranscript {\n    readonly tool: ForeignTool;\n    readonly sessionId: string;\n    readonly sourcePaths: readonly string[];\n    readonly cwd?: string;\n    readonly provider?: string;\n    readonly model?: string;\n    readonly summary?: string;\n    readonly title?: string;\n    readonly entries: readonly ForeignEntry[];\n    readonly skipped: readonly ForeignSkip[];\n}',
+  },
+  {
     name: 'FsDirEntry',
     declaration: 'export interface FsDirEntry {\n    name: string;\n    type: \'file\' | \'directory\' | \'other\';\n    target: FsTarget;\n    version?: FsVersion;\n    size?: number;\n}',
   },
@@ -4377,6 +4445,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'IndexInjectionPlacement',
     declaration: 'export type IndexInjectionPlacement = \'head\' | \'body\';',
+  },
+  {
+    name: 'InjectOutcome',
+    declaration: 'export interface InjectOutcome {\n    readonly injected: boolean;\n    readonly summary: string;\n}',
   },
   {
     name: 'InspectorId',
@@ -6135,6 +6207,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ToolSchema {\n    name: string;\n    description: string;\n    parameters: Record<string, unknown>;\n}',
   },
   {
+    name: 'TranslatedTranscript',
+    declaration: 'export interface TranslatedTranscript {\n    readonly events: readonly SessionEvent[];\n    readonly dropped: readonly ForeignDrop[];\n}',
+  },
+  {
     name: 'TurnEndCancelCause',
     declaration: 'export type TurnEndCancelCause = AgentCancelCause | {\n    readonly kind: \'legacy\';\n};',
   },
@@ -6264,7 +6340,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'WebBootEntry',
-    declaration: 'export interface WebBootEntry {\n    id: string;\n    url: string;\n    rev: string;\n    inject?: string[];\n    immediately?: boolean;\n    external?: string[];\n}',
+    declaration: 'export interface WebBootEntry {\n    id: string;\n    url: string;\n    rev: string;\n    inject?: string[];\n    immediately?: boolean;\n    external?: string[];\n    config?: unknown;\n}',
   },
   {
     name: 'WebBootGraph',

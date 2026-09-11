@@ -61,6 +61,7 @@ kind: "package-group"
 | [`ui-subagent/`](ui-subagent/README.zh.md) | 提供 subagent 导航、子级 transcript（文本记录）状态与内联引用 | — |
 | [`ui-schedule/`](ui-schedule/README.zh.md) | 在只读标题栏目录中列出当前会话中生效的提醒 | — |
 | [`ui-jobs/`](ui-jobs/README.zh.md) | 在会话标题栏列出当前会话的后台任务 | — |
+| [`ui-context-import/`](ui-context-import/README.zh.md) | 在会话标题栏导入 Codex 或 Claude Code 对话 | — |
 | [`ui-model-selection/`](ui-model-selection/README.zh.md) | 在对话界面中提供模型选择 | — |
 | [`ui-permission-presets/`](ui-permission-presets/README.zh.md) | 配置默认权限并切换当前会话的访问模式 | — |
 | [`ui-plan/`](ui-plan/README.zh.md) | 展示生效中的 plan mode 状态及其退出控件 | — |
@@ -72,6 +73,7 @@ kind: "package-group"
 | [`ui-settings-models/`](ui-settings-models/README.zh.md) | 提供模型提供方配置与 DeepSeek 引导 | — |
 | [`ui-settings-plugin-inventory/`](ui-settings-plugin-inventory/README.zh.md) | 向「插件」设置贡献只读的 Host Loader 清单标签页 | — |
 | [`ui-deliverables/`](ui-deliverables/README.zh.md) | 生成已产出文件的轮次尾部与可点击的最终响应文件引用 | — |
+| [`ui-cost-meter/`](ui-cost-meter/README.zh.md) | 在聊天轮次尾部显示每个已结算轮次的 token 费用，并在输入框停靠区显示已加载窗口的合计 | — |
 | [`ui-message-feedback/`](ui-message-feedback/README.zh.md) | 反馈界面：助手消息操作条中的逐消息赞踩，以及点赞、点踩与 `/feedback` 背后的反馈弹窗 | — |
 | [`ui-directory-picker-browse/`](ui-directory-picker-browse/README.zh.md) | 面向工作区目录流程的应用内目录浏览界面 | — |
 | [`ui-directory-picker-native/`](ui-directory-picker-native/README.zh.md) | 驱动宿主 OS 选择器的原生目录选择界面 | — |

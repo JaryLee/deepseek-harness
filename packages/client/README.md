@@ -61,6 +61,7 @@ The kernel packages boot and serve the page; the UI feature packages present it.
 | [`ui-subagent/`](ui-subagent/README.md) | Provides subagent navigation, child transcript states, and inline references | — |
 | [`ui-schedule/`](ui-schedule/README.md) | Lists the current Session's active reminders in a read-only header catalog | — |
 | [`ui-jobs/`](ui-jobs/README.md) | Lists this session's background jobs in the conversation header | — |
+| [`ui-context-import/`](ui-context-import/README.md) | Imports a Codex or Claude Code conversation from the session header | — |
 | [`ui-model-selection/`](ui-model-selection/README.md) | Provides model selection in conversation surfaces | — |
 | [`ui-permission-presets/`](ui-permission-presets/README.md) | Configures default permissions and switches the current session's access | — |
 | [`ui-plan/`](ui-plan/README.md) | Presents active plan-mode status and its exit control | — |
@@ -72,6 +73,7 @@ The kernel packages boot and serve the page; the UI feature packages present it.
 | [`ui-settings-models/`](ui-settings-models/README.md) | Provides model-provider configuration and DeepSeek onboarding | — |
 | [`ui-settings-plugin-inventory/`](ui-settings-plugin-inventory/README.md) | Contributes the read-only Host Loader inventory tab to Plugins settings | — |
 | [`ui-deliverables/`](ui-deliverables/README.md) | Produces the produced-files turn tail and clickable final-response file references | — |
+| [`ui-cost-meter/`](ui-cost-meter/README.md) | Shows each settled turn's token cost in the chat turn tail and the loaded window's total on the composer dock | — |
 | [`ui-message-feedback/`](ui-message-feedback/README.md) | The feedback surface: per-message Like/Dislike in the assistant-message action strip, and the feedback dialog behind both ratings and `/feedback` | — |
 | [`ui-directory-picker-browse/`](ui-directory-picker-browse/README.md) | In-app directory browsing surface for the workspace directory flow | — |
 | [`ui-directory-picker-native/`](ui-directory-picker-native/README.md) | Native directory-picker surface driving the host's OS chooser | — |

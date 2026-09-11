@@ -217,4 +217,48 @@ describe('plugin activation', () => {
     expect(container.textContent).toBe('mounted')
     await entry.dispose()
   })
+
+  it('creates a row with the config its boot graph row carries', async () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const target = installFacade()
+    const config = { pricing: { m: { input: 1, output: 2, cacheRead: 0.1, cacheWrite: 1 } } }
+    const entries: WebBootEntry[] = [
+      { id: 'configured', url: '/configured.js', rev: '1', config },
+      { id: 'renderer', url: '/renderer.js', rev: '1' },
+    ]
+    win.__DSH_BOOT__ = {
+      rev: 'graph',
+      entries,
+      batches: [{
+        phase: 'application',
+        url: '/application.js',
+        rev: 'batch',
+        entries: entries.map(row => row.id),
+      }],
+    }
+    const seen: unknown[] = []
+    const registrations: ClientBundleRegistration[] = [
+      { id: 'configured', factory: () => ({ apply: (_ctx: Context, value: unknown) => { seen.push(value) } }) },
+      {
+        id: 'renderer',
+        factory: () => ({
+          apply: (ctx: Context) => {
+            ctx.reflect.provide('uiRenderer', { mount: () => () => {} })
+          },
+        }),
+      },
+    ]
+    const entry = new AppWebEntry(container, {
+      loadBundle: async (url) => {
+        if (url !== '/application.js') throw new Error(`missing fixture batch ${url}`)
+        for (const registration of registrations) target.load(registration)
+      },
+    })
+
+    await entry.run()
+
+    expect(seen).toEqual([config])
+    await entry.dispose()
+  })
 })

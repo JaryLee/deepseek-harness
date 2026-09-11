@@ -1,0 +1,18 @@
+{"type":"queue-operation","operation":"enqueue","timestamp":"2026-08-27T12:00:00.000Z","sessionId":"claude-a","content":"你好"}
+{"type":"custom-title","customTitle":"我的会话","sessionId":"claude-a"}
+{"type":"summary","summary":"更早的摘要","sessionId":"claude-a"}
+{"parentUuid":null,"isSidechain":false,"type":"user","sessionId":"claude-a","cwd":"D:\\work\\demo","timestamp":"2026-08-27T12:00:01.000Z","message":{"role":"user","content":"你好呀"}}
+{"parentUuid":"u1","isSidechain":false,"type":"assistant","sessionId":"claude-a","timestamp":"2026-08-27T12:00:02.000Z","message":{"id":"a1","role":"assistant","model":"deepseek-v4","content":[{"type":"thinking","thinking":"思考中"},{"type":"text","text":"我来看看"},{"type":"tool_use","id":"tu1","name":"Bash","input":{"command":"ls"}}]}}
+{"parentUuid":"a1","isSidechain":false,"type":"user","sessionId":"claude-a","timestamp":"2026-08-27T12:00:03.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tu1","content":"列出的内容"}]}}
+{"parentUuid":"a1","isSidechain":true,"type":"user","sessionId":"claude-a","message":{"role":"user","content":"旁支对话"}}
+{"type":"assistant","sessionId":"claude-a","message":{"role":"assistant","content":"纯字符串回复"}}
+{"type":"assistant","sessionId":"claude-a","message":{"role":"assistant","content":[{"type":"image","source":{}},{"type":"mystery_block"}]}}
+{"type":"assistant","sessionId":"claude-a","message":{"role":"assistant"}}
+{"type":"user","sessionId":"claude-a"}
+{"type":"assistant","sessionId":"claude-a","message":{"role":"assistant","content":[{"type":"tool_use","name":"NoId"}]}}
+{"type":"user","sessionId":"claude-a","message":{"role":"user","content":[{"type":"tool_result","content":"孤儿结果"}]}}
+{"type":"user","sessionId":"claude-a","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tu2","content":[{"type":"text","text":"数组结果"}]}]}}
+{"type":"attachment","sessionId":"claude-a","attachment":{"type":"hook_success"}}
+{"type":"mystery","sessionId":"claude-a"}
+
+not json either

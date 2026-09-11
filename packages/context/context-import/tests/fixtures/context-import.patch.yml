@@ -1,0 +1,22 @@
+# Test-only overlay over the shipped headless profile. The production bundle
+# layers own the agent services, the command registry, tools, persistence, and
+# defaults; this overlay adds only the subject plugin and a deterministic model.
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+# Every route a created agent could reach resolves to the in-process mock, so no
+# adapter credential is read and no turn leaves the process.
+- id: agent-default-model
+  config:
+    provider: context-import-mock
+    model: context-import-mock
+
+- insert:
+    - id: context-import-mock-llm
+      name: './mock-llm.ts'
+
+    - id: context-import
+      name: '@deepseek-ai/dsh-context-import'

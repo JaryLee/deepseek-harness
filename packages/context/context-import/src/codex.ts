@@ -20,10 +20,14 @@ const ANNOTATION_TYPES = new Set([
  * them as something the person said.
  */
 const SYNTHETIC_USER_PREFIXES = [
-  '<environment_context>',
-  '<user_instructions>',
   '<app-context>',
+  '<environment_context>',
+  '<heartbeat>',
+  '<image>',
+  '<recommended_plugins>',
+  '<turn_aborted>',
   '<turn_context>',
+  '<user_instructions>',
 ]
 
 /**
@@ -57,48 +61,51 @@ export async function parseCodexSession(sourcePaths: readonly string[]): Promise
   let summary: string | undefined
 
   for (const sourcePath of sourcePaths) {
-    await readJsonLines(sourcePath, (value, line) => {
-      const record = asRecord(value)
-      if (record === undefined) {
-        skipped.push({ reason: 'line is not a JSON object', detail: `${basename(sourcePath)}:${line}` })
-        return
-      }
-      const type = stringField(record, 'type')
-      if (type === 'session_meta') {
-        const payload = asRecord(record.payload) ?? {}
-        sessionId = stringField(payload, 'session_id') ?? stringField(payload, 'id') ?? sessionId
-        cwd = stringField(payload, 'cwd') ?? cwd
-        provider = stringField(payload, 'model_provider') ?? provider
-        return
-      }
-      if (type === 'turn_context') {
-        model = stringField(asRecord(record.payload) ?? {}, 'model') ?? model
-        return
-      }
-      if (type === 'compacted') {
-        const message = stringField(asRecord(record.payload) ?? {}, 'message')
-        if (message !== undefined) summary = message
-        skipped.push({ reason: 'compaction replacement history', detail: 'compacted' })
-        return
-      }
-      if (type === undefined || ANNOTATION_TYPES.has(type)) return
-      if (type !== 'response_item') {
-        skipped.push({ reason: 'unknown record type', detail: type })
-        return
-      }
-      const payload = asRecord(record.payload)
-      if (payload === undefined) {
-        skipped.push({ reason: 'response_item without payload', detail: `${basename(sourcePath)}:${line}` })
-        return
-      }
-      const id = stringField(payload, 'id')
-      if (id !== undefined) {
-        if (seen.has(id)) return
-        seen.add(id)
-      }
-      translatePayload(payload, stringField(record, 'timestamp'), entries, skipped)
-    }, (line) => {
-      skipped.push({ reason: 'malformed JSON line', detail: `${basename(sourcePath)}:${line}` })
+    await readJsonLines(sourcePath, {
+      visit: (value, line) => {
+        const record = asRecord(value)
+        if (record === undefined) {
+          skipped.push({ reason: 'line is not a JSON object', detail: `${basename(sourcePath)}:${line}` })
+          return
+        }
+        const type = stringField(record, 'type')
+        if (type === 'session_meta') {
+          const payload = asRecord(record.payload) ?? {}
+          sessionId = stringField(payload, 'session_id') ?? stringField(payload, 'id') ?? sessionId
+          cwd = stringField(payload, 'cwd') ?? cwd
+          provider = stringField(payload, 'model_provider') ?? provider
+          return
+        }
+        if (type === 'turn_context') {
+          model = stringField(asRecord(record.payload) ?? {}, 'model') ?? model
+          return
+        }
+        if (type === 'compacted') {
+          const message = stringField(asRecord(record.payload) ?? {}, 'message')
+          if (message !== undefined) summary = message
+          skipped.push({ reason: 'compaction replacement history', detail: 'compacted' })
+          return
+        }
+        if (type === undefined || ANNOTATION_TYPES.has(type)) return
+        if (type !== 'response_item') {
+          skipped.push({ reason: 'unknown record type', detail: type })
+          return
+        }
+        const payload = asRecord(record.payload)
+        if (payload === undefined) {
+          skipped.push({ reason: 'response_item without payload', detail: `${basename(sourcePath)}:${line}` })
+          return
+        }
+        const id = stringField(payload, 'id')
+        if (id !== undefined) {
+          if (seen.has(id)) return
+          seen.add(id)
+        }
+        translatePayload(payload, stringField(record, 'timestamp'), entries, skipped)
+      },
+      onMalformed: (line) => {
+        skipped.push({ reason: 'malformed JSON line', detail: `${basename(sourcePath)}:${line}` })
+      },
     })
   }
 
@@ -202,6 +209,7 @@ function messageText(content: unknown, skipped: ForeignSkip[]): string | undefin
     const record = asRecord(block)
     const type = record === undefined ? undefined : stringField(record, 'type')
     if (type === 'input_text' || type === 'output_text' || type === 'text') {
+      /* v8 ignore next -- `record` is defined whenever `type` names a text block */
       const text = stringField(record ?? {}, 'text')
       if (text !== undefined) parts.push(text)
       continue

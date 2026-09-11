@@ -23,7 +23,7 @@ const OVERLAY = 'conversation.input.overlay'
 const LISTING = 'import list · 可导入会话：\ncodex abc  (/work, 2026-02-03T04:05:06.000Z, 4 KiB)'
 
 /** Slot ledger reader: entry ids currently registered under one slot. */
-function entryIds(ctx: Context, slot: keyof SlotMap & string): (string | undefined)[] {
+function entryIds(ctx: Context, slot: keyof SlotMap): (string | undefined)[] {
   return ctx.slots.entries(slot).map(entry => entry.options.id)
 }
 
@@ -66,7 +66,7 @@ async function bench(script: CommandResult[] = [{ kind: 'success', text: LISTING
   await fiber.await()
 
   /** The recorded registration's inject factory, typed as the entry sees it. */
-  const faceAt = (slot: keyof SlotMap & string): unknown => {
+  const faceAt = (slot: keyof SlotMap): unknown => {
     const entry = ctx.slots.entries(slot)[0]
     if (entry?.inject === undefined) throw new Error(`no inject face registered under ${slot}`)
     return entry.inject

@@ -1,0 +1,81 @@
+/** `contextImport` namespace dictionaries. */
+
+/** Dictionary namespace owned by this plugin. */
+export const NS = 'contextImport'
+
+/** Simplified Chinese dictionary (the key-set source of truth). */
+export const zh = {
+  'action.label': '导入会话',
+  'dialog.title': '导入 CLI 会话',
+  'dialog.close': '关闭导入对话框',
+  'dialog.refresh': '刷新列表',
+  'dialog.table': '可导入的 CLI 会话',
+  'search.label': '搜索会话',
+  'search.placeholder': '按标题或会话 ID 搜索',
+  'filter.label': '按工具筛选',
+  'filter.all': '全部',
+  'filter.codex': 'Codex',
+  'filter.claude-code': 'Claude Code',
+  'column.name': '会话',
+  'column.directory': '工作目录',
+  'column.time': '更新时间',
+  'column.size': '大小',
+  'column.actions': '操作',
+  'size.unit': '{size} KiB',
+  'group.title': '{tool}（{count}）',
+  'row.import': '导入',
+  'row.importAria': '导入 {name}',
+  'row.inject': '注入当前会话',
+  'row.injectAria': '把 {name} 注入当前会话',
+  'state.loading': '正在读取可导入会话…',
+  'state.loadFailed': '读取可导入会话失败。',
+  'state.empty': '没有可导入的 CLI 会话。',
+  'state.noMatch': '没有匹配当前筛选条件的会话。',
+  'page.position': '第 {page} / {pages} 页',
+  'page.previous': '上一页',
+  'page.next': '下一页',
+  'status.busy': '正在执行 /import…',
+  'status.okNew': '{text}（新会话已出现在左侧会话列表中）',
+  'status.okInject': '{text}',
+  'status.error': '/import 失败：{text}',
+} as const
+
+/** English dictionary, key-identical to the Chinese source of truth. */
+export const en: Record<ContextImportKey, string> = {
+  'action.label': 'Import session',
+  'dialog.title': 'Import a CLI session',
+  'dialog.close': 'Close the import dialog',
+  'dialog.refresh': 'Refresh list',
+  'dialog.table': 'Importable CLI sessions',
+  'search.label': 'Search sessions',
+  'search.placeholder': 'Search by title or session id',
+  'filter.label': 'Filter by tool',
+  'filter.all': 'All',
+  'filter.codex': 'Codex',
+  'filter.claude-code': 'Claude Code',
+  'column.name': 'Session',
+  'column.directory': 'Working directory',
+  'column.time': 'Updated',
+  'column.size': 'Size',
+  'column.actions': 'Actions',
+  'size.unit': '{size} KiB',
+  'group.title': '{tool} ({count})',
+  'row.import': 'Import',
+  'row.importAria': 'Import {name}',
+  'row.inject': 'Inject into this session',
+  'row.injectAria': 'Inject {name} into this session',
+  'state.loading': 'Reading importable sessions…',
+  'state.loadFailed': 'Reading importable sessions failed.',
+  'state.empty': 'No importable CLI sessions were found.',
+  'state.noMatch': 'No session matches the current search or filter.',
+  'page.position': 'Page {page} of {pages}',
+  'page.previous': 'Previous page',
+  'page.next': 'Next page',
+  'status.busy': 'Running /import…',
+  'status.okNew': '{text} (the new session is now listed in the sidebar)',
+  'status.okInject': '{text}',
+  'status.error': '/import failed: {text}',
+}
+
+/** Key domain of the `contextImport` namespace (zh is the source of truth). */
+export type ContextImportKey = keyof typeof zh

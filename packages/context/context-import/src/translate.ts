@@ -93,9 +93,7 @@ export function translateTranscript(transcript: ForeignTranscript): TranslatedTr
     if (opener !== undefined && opener.kind === 'message' && opener.role === 'user') {
       emit({
         type: 'user/message',
-        data: {
-          message: createUserMessage({ content: [{ type: 'text', text: opener.text }], source: { kind: 'user' } }),
-        },
+        data: createUserMessage({ content: [{ type: 'text', text: opener.text }], source: { kind: 'user' } }),
         surfaceOp: 'append',
       }, at)
     }
@@ -114,13 +112,14 @@ export function translateTranscript(transcript: ForeignTranscript): TranslatedTr
     const attached = attachCalls(round, answered)
 
     const emittedCalls = new Set<string>()
+    const consumedResults = new Set<string>()
     for (const [position, entry] of round.entries()) {
       switch (entry.kind) {
         case 'message': {
           if (entry.role === 'user') break
           const content: ContentBlock[] = []
           if (entry.text !== '') content.push({ type: 'text', text: entry.text })
-          content.push(...attached.get(position) ?? [])
+          content.push(...attached.blocks.get(position) ?? [])
           if (content.length === 0) break
           emit({
             type: 'assistant/message',
@@ -140,6 +139,21 @@ export function translateTranscript(transcript: ForeignTranscript): TranslatedTr
             break
           }
           emittedCalls.add(entry.callId)
+          if (!attached.ids.has(entry.callId)) {
+            // The foreign log issued this call without a preceding assistant
+            // message. Recording it as its own message keeps the call visible
+            // to the model ahead of the result that answers it.
+            emit({
+              type: 'assistant/message',
+              data: {
+                turn,
+                step,
+                message: createAssistantMessage({ content: [callBlock(entry)], source: { provider, model } }),
+                stream: [],
+              },
+              surfaceOp: 'append',
+            }, entry.at)
+          }
           emit({
             type: 'tool/call',
             data: { turn, step, callId: ToolCallId(entry.callId), name: entry.name, arguments: entry.arguments },
@@ -155,6 +169,11 @@ export function translateTranscript(transcript: ForeignTranscript): TranslatedTr
             dropped.push({ kind: 'result', callId: entry.callId, reason: 'tool result precedes its call' })
             break
           }
+          if (consumedResults.has(entry.callId)) {
+            dropped.push({ kind: 'result', callId: entry.callId, reason: 'tool call already has a result' })
+            break
+          }
+          consumedResults.add(entry.callId)
           emit({
             type: 'tool/result',
             data: {
@@ -196,6 +215,15 @@ function splitRounds(entries: readonly ForeignEntry[]): ForeignEntry[][] {
 }
 
 /**
+ * Build the assistant-message block that records one tool call.
+ * @param entry - Call read from the foreign log.
+ * @returns The `tool-call` content block.
+ */
+function callBlock(entry: ForeignCallEntry): ToolCallBlock {
+  return { type: 'tool-call', id: ToolCallId(entry.callId), name: entry.name, arguments: entry.arguments }
+}
+
+/**
  * Attach each answered call to the assistant message that issued it.
  *
  * A call the foreign log never answered is left unattached: the walk reports
@@ -204,13 +232,14 @@ function splitRounds(entries: readonly ForeignEntry[]): ForeignEntry[][] {
  *
  * @param round - Entries of one round.
  * @param answered - Call ids that carry a result in this round.
- * @returns `tool-call` blocks by the assistant message's position in `round`.
+ * @returns The `tool-call` blocks by the assistant message's position in `round`, plus the ids that were attached.
  */
 function attachCalls(
   round: readonly ForeignEntry[],
   answered: ReadonlySet<string>,
-): Map<number, ToolCallBlock[]> {
-  const attached = new Map<number, ToolCallBlock[]>()
+): { blocks: Map<number, ToolCallBlock[]>; ids: Set<string> } {
+  const blocks = new Map<number, ToolCallBlock[]>()
+  const ids = new Set<string>()
   let owner: number | undefined
   for (const [position, entry] of round.entries()) {
     if (entry.kind === 'message' && entry.role === 'assistant') {
@@ -218,14 +247,10 @@ function attachCalls(
       continue
     }
     if (entry.kind !== 'call' || owner === undefined || !answered.has(entry.callId)) continue
-    const blocks = attached.get(owner) ?? []
-    blocks.push({
-      type: 'tool-call',
-      id: ToolCallId(entry.callId),
-      name: entry.name,
-      arguments: entry.arguments,
-    })
-    attached.set(owner, blocks)
+    const attached = blocks.get(owner) ?? []
+    attached.push(callBlock(entry))
+    blocks.set(owner, attached)
+    ids.add(entry.callId)
   }
-  return attached
+  return { blocks, ids }
 }
