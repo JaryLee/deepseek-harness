@@ -28,7 +28,6 @@ export const zh = {
   'notify.waitingApproval': '请求你的授权',
   'notify.waitingPlan': '提交了待审的计划',
   'notice.open': '打开会话',
-  'notice.dismiss': '关闭提示',
 } satisfies Record<string, string>
 
 /** The `desktopNotify` namespace key union. */
@@ -59,5 +58,4 @@ export const en = {
   'notify.waitingApproval': 'requested your approval',
   'notify.waitingPlan': 'submitted a plan for review',
   'notice.open': 'Open the session',
-  'notice.dismiss': 'Dismiss the notice',
 } satisfies Record<DesktopNotifyKey, string>

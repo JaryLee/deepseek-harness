@@ -15,31 +15,26 @@ afterEach(cleanup)
 
 function stage() {
   const onOpen = vi.fn()
-  const onDismiss = vi.fn()
   render(
     <WhaleStage
       notice={NOTICE}
       openLabel="open the session"
-      dismissLabel="dismiss the notice"
       onOpen={onOpen}
-      onDismiss={onDismiss}
     />,
   )
-  return { onOpen, onDismiss }
+  return { onOpen }
 }
 
 /** Overlay props with the framework shares a component never reads. */
 function overlayProps(store: WhaleStore) {
   const openSession = vi.fn()
-  const dismiss = vi.fn()
   const props = {
     openSession,
-    dismiss,
     t: (key: string) => key,
     useWhale: (selector: (value: ReturnType<WhaleStore['source']['getSnapshot']>) => unknown) =>
       selector(store.source.getSnapshot()),
   } as unknown as WhaleNoticeOverlayProps
-  return { props, openSession, dismiss }
+  return { props, openSession }
 }
 
 describe('WhaleStage', () => {
@@ -52,28 +47,26 @@ describe('WhaleStage', () => {
       .toBe(NOTICE.sessionId)
   })
 
-  it('stages the artwork layers: scene, spray, whale, wave band, and bubble', () => {
+  it('stages the artwork layers: scene, whale, waterline, two sprays, and the bubble', () => {
     stage()
     expect(document.querySelectorAll('[data-whale-mark]')).toHaveLength(1)
     expect(document.querySelector('[data-whale-mark]')?.tagName).toBe('IMG')
     const sources = [...document.querySelectorAll('[data-whale-scene] img')]
       .map(image => image.getAttribute('src') ?? '')
-    expect(sources).toHaveLength(5)
+    expect(sources).toHaveLength(6)
     for (const source of sources) expect(source.startsWith('data:image/webp;base64,')).toBe(true)
+    expect(document.querySelectorAll('i')).toHaveLength(12)
   })
 
   it('opens the session from the bubble', () => {
     const b = stage()
     fireEvent.click(screen.getByRole('button', { name: /finished/ }))
     expect(b.onOpen).toHaveBeenCalledTimes(1)
-    expect(b.onDismiss).not.toHaveBeenCalled()
   })
 
-  it('dismisses from the close control', () => {
-    const b = stage()
-    fireEvent.click(screen.getByRole('button', { name: 'dismiss the notice' }))
-    expect(b.onDismiss).toHaveBeenCalledTimes(1)
-    expect(b.onOpen).not.toHaveBeenCalled()
+  it('offers no dismiss control: the notice clears itself', () => {
+    stage()
+    expect(screen.getAllByRole('button')).toHaveLength(1)
   })
 })
 
@@ -87,13 +80,12 @@ describe('WhaleNoticeOverlay', () => {
   it('renders the notice the store holds and routes both operations', () => {
     const store = createWhaleStore()
     const seq = store.show(NOTICE, HOLD)
-    const { props, openSession, dismiss } = overlayProps(store)
+    const { props, openSession } = overlayProps(store)
     render(<WhaleNoticeOverlay {...props} />)
     expect(screen.getByText('finished')).toBeDefined()
     fireEvent.click(screen.getByRole('button', { name: /finished/ }))
     expect(openSession).toHaveBeenCalledWith(NOTICE.sessionId)
-    fireEvent.click(screen.getByRole('button', { name: 'notice.dismiss' }))
-    expect(dismiss).toHaveBeenCalledWith(seq)
+    expect(seq).toBeGreaterThan(0)
     store.release()
   })
 })

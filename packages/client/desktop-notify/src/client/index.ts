@@ -190,7 +190,6 @@ export function apply(ctx: ClientContext): void {
     inject: (): WhaleFace => ({
       hooks: { whale: whale.source },
       openSession: (sessionId) => { openSession(sessionId) },
-      dismiss: (seq) => { whale.dismiss(seq) },
     }),
   }, WhaleNoticeOverlay))
 }

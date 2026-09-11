@@ -272,7 +272,7 @@ describe('desktop-notify client apply', () => {
     expect(sound.playNoticeSound).not.toHaveBeenCalled()
     face.openSession(ONE)
     expect(b.open).toHaveBeenCalledWith(ONE)
-    face.dismiss(state.seq)
+    vi.advanceTimersByTime(WHALE_HOLD_MS)
     expect(face.hooks.whale.getSnapshot().notice).toBeUndefined()
   })
 
