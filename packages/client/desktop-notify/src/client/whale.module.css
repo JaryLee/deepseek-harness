@@ -1,0 +1,401 @@
+/*
+ * The breaching whale. One fixed waterline, two clipped copies of the same
+ * animated whale, a sea whose surface is translucent enough to see the body
+ * under it, and the message riding up in a water bubble. The palette lives in
+ * --whale-* on the stage so the art reads as one decision.
+ */
+
+.layer {
+  position: fixed;
+  right: 22px;
+  bottom: 16px;
+  z-index: 70;
+  pointer-events: none;
+}
+
+.stage {
+  --whale-blue: #4d6bfe;
+  --whale-blue-light: #93b2ff;
+  --whale-blue-pale: #d8e3ff;
+  --whale-blue-deep: #16247e;
+  --whale-sea-top: rgb(97 133 255 / 42%);
+  --whale-sea-mid: rgb(31 50 140 / 62%);
+  --whale-sea-deep: rgb(8 14 52 / 80%);
+  --leap: 3.4s;
+  --whale-loops: 2;
+  position: relative;
+  width: 340px;
+  height: 250px;
+  user-select: none;
+}
+
+/* The air the whale breaches into: a soft brand glow, nothing more. */
+.sky {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(58% 46% at 62% 34%, rgb(147 178 255 / 26%), rgb(77 107 254 / 6%) 62%, transparent 78%);
+}
+
+/* The body of water. The top edge is a wide ellipse so the surface reads as a
+   plane seen from slightly above, not as a band pasted on the whale. */
+.sea {
+  position: absolute;
+  right: -14px;
+  bottom: 0;
+  left: -14px;
+  height: 47%;
+  overflow: hidden;
+  border-radius: 46% 54% 0 0 / 22px 26px 0 0;
+  background: linear-gradient(180deg, var(--whale-sea-top), var(--whale-sea-mid) 46%, var(--whale-sea-deep));
+  box-shadow:
+    inset 0 10px 24px rgb(199 218 255 / 32%),
+    inset 0 -16px 30px rgb(4 8 32 / 45%);
+}
+
+/* Caustics: the light the surface throws down into the water. */
+.caustics {
+  position: absolute;
+  inset: -30%;
+  background: repeating-linear-gradient(74deg, rgb(255 255 255 / 18%) 0 6px, transparent 6px 22px);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  animation: sea-sway 5.5s ease-in-out infinite;
+}
+
+/* The whale's shadow on the sea floor, under the refracted copy. */
+.shadow {
+  position: absolute;
+  right: 8%;
+  bottom: 4%;
+  left: 14%;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(3 6 28 / 55%), transparent 72%);
+  filter: blur(4px);
+}
+
+.above,
+.below {
+  position: absolute;
+  inset: 0;
+}
+
+/* Dry body: everything above the waterline. */
+.above {
+  clip-path: inset(0 0 53% 0);
+}
+
+/* Underwater body: refracted — blurred, darkened, and compressed by the water. */
+.below {
+  clip-path: inset(47% 0 0 0);
+  filter: blur(1.6px) brightness(0.62) saturate(1.5);
+}
+
+/* One copy of the whale. Both copies run the same animation, so which one is
+   visible is decided by where the whale is, never by a second animation. */
+.pet {
+  position: absolute;
+  right: 2px;
+  bottom: 26px;
+  width: 232px;
+  height: auto;
+  filter: drop-shadow(0 16px 20px rgb(6 12 44 / 35%));
+  animation: whale-leap var(--leap) cubic-bezier(0.33, 0.7, 0.36, 1) var(--whale-loops) both;
+  will-change: transform;
+}
+
+.glow {
+  opacity: 0.8;
+  animation: whale-lit var(--leap) ease-in-out var(--whale-loops) both;
+}
+
+.lit {
+  opacity: 0.55;
+}
+
+.rim {
+  fill: none;
+  stroke: rgb(226 236 255 / 75%);
+  stroke-width: 0.22;
+  stroke-linejoin: round;
+}
+
+/* The waterline itself, seen edge-on and catching the light. */
+.surface {
+  position: absolute;
+  right: -14px;
+  bottom: 45.6%;
+  left: -14px;
+  height: 4px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(214 229 255 / 90%) 18%,
+    rgb(255 255 255 / 75%) 46%,
+    rgb(160 190 255 / 50%) 72%,
+    transparent
+  );
+  filter: blur(0.7px);
+  box-shadow: 0 0 14px rgb(160 196 255 / 55%);
+}
+
+/* Rings left on the surface at takeoff and at the splashdown. */
+.wake {
+  position: absolute;
+  right: -10px;
+  bottom: 42%;
+  left: -10px;
+  height: 0;
+}
+
+.wake span {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 62px;
+  height: 14px;
+  margin-left: -31px;
+  border: 1.5px solid rgb(206 224 255 / 75%);
+  border-radius: 50%;
+  opacity: 0;
+  animation: wake-out 1.5s ease-out both;
+}
+
+.wake span:nth-child(1) { animation-delay: 0.5s; }
+.wake span:nth-child(2) { animation-delay: 2.45s; }
+.wake span:nth-child(3) { animation-delay: 3.9s; }
+.wake span:nth-child(4) { animation-delay: 5.85s; }
+
+/* Droplets thrown clear at each splashdown. */
+.drops {
+  position: absolute;
+  right: 0;
+  bottom: 45%;
+  left: 6%;
+  height: 70px;
+}
+
+.drops span {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, rgb(150 186 255 / 85%));
+  opacity: 0;
+  animation: drop-fall 1.05s ease-in both;
+}
+
+.drops span:nth-child(1) { left: 18%; animation-delay: 2.45s; }
+.drops span:nth-child(2) { left: 26%; animation-delay: 2.55s; }
+.drops span:nth-child(3) { left: 34%; animation-delay: 2.5s; }
+.drops span:nth-child(4) { left: 20%; animation-delay: 5.85s; }
+.drops span:nth-child(5) { left: 28%; animation-delay: 5.95s; }
+
+/* Bubbles rising through the water, so the sea is not a flat gradient. */
+.orbs {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 47%;
+}
+
+.orbs span {
+  position: absolute;
+  bottom: 4%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, rgb(255 255 255 / 95%), rgb(150 190 255 / 35%));
+  opacity: 0;
+  animation: orbs-rise 3.4s linear infinite;
+}
+
+.orbs span:nth-child(1) { left: 22%; animation-delay: 0.9s; }
+.orbs span:nth-child(2) { left: 58%; width: 4px; height: 4px; animation-delay: 2.1s; }
+.orbs span:nth-child(3) { left: 74%; width: 8px; height: 8px; animation-delay: 1.5s; }
+.orbs span:nth-child(4) { left: 44%; animation-delay: 3s; }
+
+/* The message: a water bubble, not a card, so the notice looks like it drifted
+   up out of the sea rather than being pasted over the app. */
+.bubble {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 228px;
+  padding: 10px 14px;
+  border: 0.5px solid rgb(255 255 255 / 50%);
+  border-radius: 16px 16px 16px 5px;
+  appearance: none;
+  background: linear-gradient(152deg, rgb(147 178 255 / 96%), var(--whale-blue) 58%, rgb(52 80 220 / 94%));
+  box-shadow:
+    0 12px 26px rgb(18 32 96 / 34%),
+    inset 0 1px 0 rgb(255 255 255 / 50%),
+    inset 0 -8px 18px rgb(24 42 140 / 35%);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  backdrop-filter: blur(6px);
+  animation: notice-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.bubble:hover {
+  filter: brightness(1.06);
+}
+
+.bubble:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.bubbleTitle {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.bubbleBody {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+
+/* The bubble's tail: the drip that says "sea", not "tooltip". */
+.bubbleTail {
+  position: absolute;
+  bottom: -5px;
+  left: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 0 0 3px;
+  background: rgb(58 88 230 / 94%);
+  transform: rotate(45deg);
+}
+
+.close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  background: rgb(14 22 60 / 45%);
+  color: #e8efff;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0.85;
+  transition: opacity 0.16s, background 0.16s;
+}
+
+.close:hover {
+  background: rgb(14 22 60 / 70%);
+  opacity: 1;
+}
+
+.close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.close svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* Takeoff, apex, and splashdown of one breach; the rest pose is submerged. */
+@keyframes whale-leap {
+  0% { transform: translateY(-92px) rotate(-8deg); }
+  12% { transform: translateY(-68px) rotate(-5deg); }
+  40% { transform: translateY(46px) rotate(6deg) scale(1.03); }
+  58% { transform: translateY(18px) rotate(1deg); }
+  72% { transform: translateY(-86px) rotate(-9deg); }
+  100% { transform: translateY(-92px) rotate(-8deg); }
+}
+
+@keyframes whale-lit {
+  0%, 100% { opacity: 0.35; }
+  40% { opacity: 1; }
+}
+
+@keyframes sea-sway {
+  0%, 100% { transform: translate3d(-2%, 0, 0); }
+  50% { transform: translate3d(2%, 1%, 0); }
+}
+
+@keyframes wake-out {
+  0% { opacity: 0; transform: scale(0.35); }
+  22% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes drop-fall {
+  0% { opacity: 0; transform: translateY(6px) scale(0.6); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-42px) scale(1); }
+}
+
+@keyframes orbs-rise {
+  0% { opacity: 0; transform: translateY(0); }
+  12% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-96px); }
+}
+
+@keyframes notice-in {
+  0% { opacity: 0; transform: translateY(10px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Reduced motion keeps the notice legible: the whale holds a raised pose and
+   the surfaces stop moving. */
+@media (prefers-reduced-motion: reduce) {
+  .pet {
+    animation: none;
+    transform: translateY(10px);
+  }
+
+  .glow {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .caustics,
+  .wake span,
+  .drops span,
+  .orbs span,
+  .bubble {
+    animation: none;
+  }
+
+  .wake span,
+  .drops span,
+  .orbs span {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .stage {
+    width: 280px;
+    height: 206px;
+    transform-origin: bottom right;
+  }
+
+  .pet {
+    width: 192px;
+  }
+
+  .bubble {
+    max-width: 190px;
+  }
+}

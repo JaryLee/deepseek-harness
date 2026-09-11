@@ -1,0 +1,13 @@
+.total {
+  margin: 0;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: var(--dsw-font-xxs-12-font-size, 12px);
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.turn {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: var(--dsw-font-xxs-12-font-size, 12px);
+  line-height: 18px;
+}

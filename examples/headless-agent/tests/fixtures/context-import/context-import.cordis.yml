@@ -1,0 +1,30 @@
+# Test-only composition: exercise the context-import plugin through the real
+# Loader/app path with a deterministic mock model.
+- id: context-import-mock-llm
+  name: './context-import-mock-llm.ts'
+
+- id: commands
+  name: '@deepseek-ai/dsh-commands'
+
+- id: context-import
+  name: '@deepseek-ai/dsh-context-import'
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    agents:
+      - id: main
+        provider: context-import-mock
+        model: context-import-mock
+        cwd: !!js process.cwd()
+    persona: 'Test the context-import plugin.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: 'none'
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
