@@ -1,15 +1,14 @@
 /*
- * The breaching whale. One SVG scene with no rectangular frame: the sky is a
- * glow that fades into the app, the sea is layered wave silhouettes that fade
- * at their left and deep edges, and the splash is drawn around one fixed
- * waterline. Two clipped copies of the same whale run one leap animation, so
- * which copy shows is decided by where the whale is.
+ * The notice stage: one artwork, four layers, and the motion each one owns.
+ * The backdrop and the deep wave band drift on their own beats, the spray
+ * erupts with the breach, and the whale rises, turns at the apex, falls back
+ * and sinks behind the front band.
  */
 
 .layer {
   position: fixed;
-  right: 8px;
-  bottom: 8px;
+  right: 10px;
+  bottom: 10px;
   z-index: 70;
   pointer-events: none;
 }
@@ -18,259 +17,127 @@
   --leap: 3.4s;
   --whale-loops: 2;
   position: relative;
-  width: 340px;
-  height: 460px;
+  width: 420px;
+  height: 315px;
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgb(6 12 44 / 45%);
   user-select: none;
 }
 
-.scene {
+/* Layered from the back: scene, spray, whale, then the band the whale sinks
+   behind — which is also what makes the whale leave the water. */
+.backdrop,
+.splash,
+.whale,
+.seaFront {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-/* Light in the air, fading to nothing at every edge. */
-.sky {
-  animation: sky-breathe 7s ease-in-out infinite;
-}
-
-/* The water keeps moving: each wave band drifts on its own, the caustic sheets
-   cross at different speeds, and the swell glints travel across. */
-.wave {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: wave-roll 9s ease-in-out infinite;
-}
-
-.foam {
-  stroke: rgb(255 255 255 / 78%);
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  animation-duration: 11s;
-}
-
-.caustics {
-  mix-blend-mode: screen;
-  animation: caustic-drift 11s linear infinite alternate;
-}
-
-.caustic {
-  stroke: rgb(226 238 255 / 26%);
-  stroke-width: 7;
-  stroke-linecap: round;
-  filter: blur(4px);
-}
-
-.swell {
-  mix-blend-mode: screen;
-}
-
-.swellGlint {
-  fill: rgb(220 235 255 / 30%);
-  filter: blur(7px);
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: glint-drift 8s ease-in-out infinite alternate;
-}
-
-.swellGlint:nth-child(2) {
-  animation-duration: 12s;
-  animation-delay: -4s;
-}
-
-.swellGlint:nth-child(3) {
-  animation-duration: 15s;
-  animation-delay: -8s;
-}
-
-/* Water in front of the submerged body, so it reads as seen through the
-   surface rather than pasted behind it. */
-.tint {
+  height: auto;
+  max-width: none;
   pointer-events: none;
 }
 
-/* One copy of the whale. Positive Y is downward, so the mark rests under the
-   surface, rises to an apex that keeps its head in frame, and falls back. */
-.pet {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: whale-leap var(--leap) cubic-bezier(0.33, 0.7, 0.36, 1) var(--whale-loops) both;
-  will-change: transform;
+.backdrop {
+  top: -1%;
+  left: -1.5%;
+  width: 103%;
+  height: 102%;
+  object-fit: cover;
+  animation: backdrop-drift 17s ease-in-out infinite alternate;
 }
 
-.pet[data-whale-mark='water'] {
-  filter: blur(1.5px) brightness(0.62) saturate(1.15);
-}
-
-.backLit {
-  stroke: rgb(255 255 255 / 44%);
-  stroke-width: 9;
-  stroke-linecap: round;
-}
-
-.mouth {
-  stroke: rgb(18 36 95 / 85%);
-  stroke-width: 3.4;
-  stroke-linecap: round;
-}
-
-.eye {
-  fill: #12245f;
-}
-
-.eyeGlint {
-  fill: rgb(255 255 255 / 92%);
-}
-
-/* Rings left on the surface at takeoff and at the splashdown. */
-.wake {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-}
-
-.wakeRing {
-  fill: none;
-  stroke: rgb(226 238 255 / 70%);
-  stroke-width: 2;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: wake-out 1.6s ease-out both;
-}
-
-.wakeRing:nth-child(1) { animation-delay: 0.75s; }
-.wakeRing:nth-child(2) { animation-delay: 2.45s; }
-
-/* The splash crown and its droplets belong to the breach: they erupt as the
-   whale leaves the water and are gone again once it has sunk back. */
 .splash {
-  transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: splash-pulse var(--leap) ease-out var(--whale-loops) both;
 }
 
-.drops {
-  animation: splash-fade var(--leap) linear var(--whale-loops) both;
+.whale {
+  animation: whale-leap var(--leap) cubic-bezier(0.33, 0.7, 0.36, 1) var(--whale-loops) both;
+  will-change: transform, filter;
 }
 
-.splashCrown {
-  fill: #ffffff;
-  filter: blur(0.4px);
+.seaFront {
+  bottom: 0;
+  left: -1.5%;
+  width: 103%;
+  animation: front-roll 7s ease-in-out infinite alternate;
 }
 
-.splashWing {
-  fill: #f2f7ff;
-  opacity: 0.94;
-  filter: blur(0.6px);
-}
-
-.splashFoam {
-  fill: rgb(255 255 255 / 92%);
-  filter: blur(2px);
-}
-
-/* Droplets thrown clear, each falling on its own beat. */
-.drop {
-  fill: rgb(244 249 255 / 92%);
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: drop-fall 1.35s ease-in infinite;
-}
-
-.drop:nth-child(2) { animation-delay: -0.35s; }
-.drop:nth-child(3) { animation-delay: -0.8s; }
-.drop:nth-child(4) { animation-delay: -0.15s; }
-.drop:nth-child(5) { animation-delay: -1.05s; }
-.drop:nth-child(6) { animation-delay: -0.55s; }
-.drop:nth-child(7) { animation-delay: -0.95s; }
-.drop:nth-child(8) { animation-delay: -0.7s; }
-
-/* The message: a water bubble, not a card, so the notice looks like it drifted
-   up out of the sea rather than being pasted over the app. */
+/* The message: the artwork's water bubble, with the notice's own text inside it
+   and a hit area over the mark it already draws. */
 .bubble {
   position: absolute;
-  top: 4px;
-  left: 2px;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 286px;
+  pointer-events: none;
+  animation: notice-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.bubbleArt {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bubbleOpen {
+  position: absolute;
+  inset: 21% 13% 16% 12%;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  max-width: 228px;
-  padding: 10px 14px;
-  border: 0.5px solid rgb(255 255 255 / 50%);
-  border-radius: 16px 16px 16px 5px;
+  justify-content: center;
+  padding: 0;
+  border: 0;
   appearance: none;
-  background: linear-gradient(152deg, rgb(147 178 255 / 96%), #4d6bfe 58%, rgb(52 80 220 / 94%));
-  box-shadow:
-    0 12px 26px rgb(18 32 96 / 34%),
-    inset 0 1px 0 rgb(255 255 255 / 50%),
-    inset 0 -8px 18px rgb(24 42 140 / 35%);
+  background: none;
   color: #fff;
   font: inherit;
   text-align: left;
   cursor: pointer;
   pointer-events: auto;
-  backdrop-filter: blur(6px);
-  animation: notice-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
-.bubble:hover {
-  filter: brightness(1.06);
-}
-
-.bubble:focus-visible {
+.bubbleOpen:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
+  border-radius: 10px;
 }
 
 .bubbleTitle {
   font-size: 12.5px;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgb(8 20 70 / 45%);
 }
 
 .bubbleBody {
   font-size: 12px;
-  line-height: 1.5;
-  opacity: 0.88;
+  line-height: 1.45;
+  opacity: 0.94;
+  text-shadow: 0 1px 3px rgb(8 20 70 / 40%);
 }
 
-/* The bubble's tail: the drip that says "sea", not "tooltip". */
-.bubbleTail {
-  position: absolute;
-  bottom: -5px;
-  left: 12px;
-  width: 12px;
-  height: 12px;
-  border-radius: 0 0 3px;
-  background: rgb(58 88 230 / 94%);
-  transform: rotate(45deg);
-}
-
+/* Sits over the mark the artwork draws, so the control and the picture agree. */
 .close {
   position: absolute;
-  top: 2px;
-  right: 0;
-  display: grid;
-  width: 22px;
-  height: 22px;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   corner-shape: round;
-  place-items: center;
-  background: rgb(14 22 60 / 45%);
-  color: #e8efff;
+  appearance: none;
+  background: none;
   cursor: pointer;
   pointer-events: auto;
-  opacity: 0.85;
-  transition: opacity 0.16s, background 0.16s;
+  transition: background 0.16s;
 }
 
 .close:hover {
-  background: rgb(14 22 60 / 70%);
-  opacity: 1;
+  background: rgb(255 255 255 / 22%);
 }
 
 .close:focus-visible {
@@ -278,68 +145,47 @@
   outline-offset: 1px;
 }
 
-.close svg {
-  width: 11px;
-  height: 11px;
+.srOnly {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
+/* Under the water the whale is dimmed and soft; the animation clears that as it
+   breaks the surface, turns at the apex, and sinks again. */
 @keyframes whale-leap {
-  0% { transform: translateY(86px) rotate(5deg); }
-  12% { transform: translateY(62px) rotate(2deg); }
-  22% { transform: translateY(10px) rotate(-3deg); }
-  40% { transform: translateY(-132px) rotate(-8deg) scale(1.02); }
-  56% { transform: translateY(-58px) rotate(-4deg); }
-  72% { transform: translateY(78px) rotate(6deg); }
-  86% { transform: translateY(86px) rotate(5deg); }
-  100% { transform: translateY(86px) rotate(5deg); }
+  0% { transform: translateY(212px) rotate(3deg); filter: blur(2px) brightness(0.45) saturate(0.9); }
+  12% { transform: translateY(150px) rotate(1deg); filter: blur(2.4px) brightness(0.62) saturate(0.95); }
+  24% { transform: translateY(64px) rotate(-3deg); filter: blur(0.8px) brightness(0.92) saturate(1); }
+  40% { transform: translateY(-14px) rotate(-6deg) scale(1.015); filter: blur(0) brightness(1) saturate(1.02); }
+  56% { transform: translateY(46px) rotate(-3deg); filter: blur(0.4px) brightness(0.96) saturate(1); }
+  72% { transform: translateY(142px) rotate(2deg); filter: blur(2.2px) brightness(0.66) saturate(0.95); }
+  86% { transform: translateY(212px) rotate(3deg); filter: blur(2px) brightness(0.45) saturate(0.9); }
+  100% { transform: translateY(212px) rotate(3deg); filter: blur(2px) brightness(0.45) saturate(0.9); }
 }
 
-@keyframes sky-breathe {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
-}
-
-@keyframes wave-roll {
-  0%, 100% { transform: translateX(-7px); }
-  50% { transform: translateX(7px); }
-}
-
-@keyframes caustic-drift {
-  from { transform: translateX(-14px); }
-  to { transform: translateX(14px); }
-}
-
-@keyframes glint-drift {
-  from { transform: translateX(-40px) scaleX(0.86); }
-  to { transform: translateX(40px) scaleX(1.12); }
-}
-
-@keyframes wake-out {
-  0% { opacity: 0; transform: scale(0.3); }
-  20% { opacity: 0.9; }
-  100% { opacity: 0; transform: scale(2.2); }
-}
-
+/* The spray belongs to the breach: it erupts as the whale leaves the water and
+   is gone while the whale is under it. */
 @keyframes splash-pulse {
-  0%, 5% { opacity: 0; transform: scale(0.68); }
-  15% { opacity: 1; transform: scale(1.05); }
-  40% { opacity: 0.96; transform: scale(0.98); }
-  68% { opacity: 1; transform: scale(1.08); }
-  80% { opacity: 0.4; transform: scale(0.9); }
-  90%, 100% { opacity: 0; transform: scale(0.68); }
+  0%, 6% { opacity: 0; transform: scale(0.62); }
+  18% { opacity: 1; transform: scale(1.02); }
+  40% { opacity: 0.94; transform: scale(0.98); }
+  70% { opacity: 1; transform: scale(1.04); }
+  82% { opacity: 0.35; transform: scale(0.88); }
+  92%, 100% { opacity: 0; transform: scale(0.62); }
 }
 
-@keyframes splash-fade {
-  0%, 8% { opacity: 0; }
-  20% { opacity: 1; }
-  68% { opacity: 1; }
-  84%, 100% { opacity: 0; }
+@keyframes backdrop-drift {
+  from { transform: translate3d(-5px, -2px, 0); }
+  to { transform: translate3d(5px, 2px, 0); }
 }
 
-@keyframes drop-fall {
-  0% { opacity: 0; transform: translateY(-8px) scale(0.7); }
-  16% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(42px) scale(1.05); }
+@keyframes front-roll {
+  from { transform: translate3d(-11px, 2px, 0); }
+  to { transform: translate3d(11px, -3px, 0); }
 }
 
 @keyframes notice-in {
@@ -347,34 +193,29 @@
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Reduced motion keeps the notice legible: the whale holds a raised pose and
-   the water stops moving. */
+/* Reduced motion keeps the notice legible: the whale holds a raised pose, the
+   spray stays up, and the sea stops moving. */
 @media (prefers-reduced-motion: reduce) {
-  .pet {
+  .whale {
     animation: none;
-    transform: translateY(-24px);
+    transform: translateY(-14px);
+    filter: none;
   }
 
-  .sky,
-  .wave,
-  .caustics,
-  .swellGlint,
-  .wakeRing,
-  .splash,
-  .drop,
+  .splash {
+    animation: none;
+  }
+
+  .backdrop,
+  .seaFront,
   .bubble {
     animation: none;
-  }
-
-  .wakeRing,
-  .drop {
-    opacity: 0;
   }
 }
 
 @media (max-width: 720px) {
   .stage {
-    transform: scale(0.86);
+    transform: scale(0.82);
     transform-origin: bottom right;
   }
 }

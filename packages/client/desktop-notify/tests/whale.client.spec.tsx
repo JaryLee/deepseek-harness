@@ -52,14 +52,19 @@ describe('WhaleStage', () => {
       .toBe(NOTICE.sessionId)
   })
 
-  it('draws the whale twice: one dry copy and one seen through the water', () => {
+  it('stages the artwork layers: scene, spray, whale, wave band, and bubble', () => {
     stage()
-    expect(document.querySelectorAll('[data-whale-mark]')).toHaveLength(2)
+    expect(document.querySelectorAll('[data-whale-mark]')).toHaveLength(1)
+    expect(document.querySelector('[data-whale-mark]')?.tagName).toBe('IMG')
+    const sources = [...document.querySelectorAll('[data-whale-scene] img')]
+      .map(image => image.getAttribute('src') ?? '')
+    expect(sources).toHaveLength(5)
+    for (const source of sources) expect(source.startsWith('data:image/webp;base64,')).toBe(true)
   })
 
   it('opens the session from the bubble', () => {
     const b = stage()
-    fireEvent.click(screen.getByRole('status'))
+    fireEvent.click(screen.getByRole('button', { name: /finished/ }))
     expect(b.onOpen).toHaveBeenCalledTimes(1)
     expect(b.onDismiss).not.toHaveBeenCalled()
   })
@@ -85,7 +90,7 @@ describe('WhaleNoticeOverlay', () => {
     const { props, openSession, dismiss } = overlayProps(store)
     render(<WhaleNoticeOverlay {...props} />)
     expect(screen.getByText('finished')).toBeDefined()
-    fireEvent.click(screen.getByRole('status'))
+    fireEvent.click(screen.getByRole('button', { name: /finished/ }))
     expect(openSession).toHaveBeenCalledWith(NOTICE.sessionId)
     fireEvent.click(screen.getByRole('button', { name: 'notice.dismiss' }))
     expect(dismiss).toHaveBeenCalledWith(seq)
