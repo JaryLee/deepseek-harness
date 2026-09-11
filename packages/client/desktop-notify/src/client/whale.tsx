@@ -94,18 +94,20 @@ export function WhaleStage(props: WhaleStageProps) {
         <div className={css.sky} />
         <div className={css.sea}>
           <div className={css.caustics} />
+          <div className={css.swell}><span /><span /><span /><span /></div>
+          <div className={css.orbs}><span /><span /><span /><span /></div>
         </div>
         <div className={css.below}>
           <WhaleArt id={`${id}w`} />
           <span className={css.shadow} />
         </div>
+        <div className={css.depth} />
         <div className={css.above}>
           <WhaleArt id={`${id}a`} />
         </div>
         <div className={css.surface} />
         <div className={css.wake}><span /><span /><span /><span /></div>
         <div className={css.drops}><span /><span /><span /><span /><span /></div>
-        <div className={css.orbs}><span /><span /><span /><span /></div>
         <button
           type="button"
           className={css.bubble}
