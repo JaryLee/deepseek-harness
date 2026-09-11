@@ -1,310 +1,197 @@
 /*
- * The breaching whale. One fixed waterline, two clipped copies of the same
- * animated whale, and a sea that keeps moving: two counter-flowing caustic
- * layers, drifting swell highlights, and rising bubbles. The palette lives in
- * --whale-* on the stage so the art reads as one decision.
+ * The breaching whale. One SVG scene with no rectangular frame: the sky is a
+ * glow that fades into the app, the sea is layered wave silhouettes that fade
+ * at their left and deep edges, and the splash is drawn around one fixed
+ * waterline. Two clipped copies of the same whale run one leap animation, so
+ * which copy shows is decided by where the whale is.
  */
 
 .layer {
   position: fixed;
-  right: 22px;
-  bottom: 16px;
+  right: 8px;
+  bottom: 8px;
   z-index: 70;
   pointer-events: none;
 }
 
 .stage {
-  --whale-blue: #4d6bfe;
-  --whale-blue-light: #93b2ff;
-  --whale-blue-pale: #d8e3ff;
-  --whale-blue-deep: #16247e;
-  --whale-sea-top: rgb(97 133 255 / 42%);
-  --whale-sea-mid: rgb(31 50 140 / 62%);
-  --whale-sea-deep: rgb(8 14 52 / 80%);
   --leap: 3.4s;
   --whale-loops: 2;
   position: relative;
   width: 340px;
-  /* The air above the waterline is sized for the whole leap: the mark clears
-     the surface by a body length without reaching the stage's top edge. */
-  height: 330px;
+  height: 440px;
   user-select: none;
 }
 
-/* The air the whale breaches into: a soft brand glow, nothing more. */
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Light in the air, fading to nothing at every edge. */
 .sky {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(58% 46% at 62% 46%, rgb(147 178 255 / 26%), rgb(77 107 254 / 6%) 62%, transparent 78%);
+  animation: sky-breathe 7s ease-in-out infinite;
 }
 
-/* The body of water. The top edge is a wide ellipse so the surface reads as a
-   plane seen from slightly above, not as a band pasted on the whale. */
-.sea {
-  position: absolute;
-  right: -14px;
-  bottom: 0;
-  left: -14px;
-  height: 40%;
-  overflow: hidden;
-  border-radius: 46% 54% 0 0 / 26px 30px 0 0;
-  background: linear-gradient(180deg, var(--whale-sea-top), var(--whale-sea-mid) 46%, var(--whale-sea-deep));
-  box-shadow:
-    inset 0 10px 24px rgb(199 218 255 / 32%),
-    inset 0 -16px 30px rgb(4 8 32 / 45%);
-  animation: sea-breathe 7s ease-in-out infinite;
+/* The water keeps moving: each wave band drifts on its own, the caustic sheets
+   cross at different speeds, and the swell glints travel across. */
+.wave {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: wave-roll 9s ease-in-out infinite;
 }
 
-/* Caustics: the light the surface throws down into the water, as two sheets
-   crossing at different angles and speeds. Each drifts by exactly one stripe
-   period along the x axis, so the loop never jumps. */
+.foam {
+  stroke: rgb(255 255 255 / 78%);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  animation-duration: 11s;
+}
+
 .caustics {
-  position: absolute;
-  inset: -30% -20%;
-  background: repeating-linear-gradient(72deg, rgb(255 255 255 / 16%) 0 5px, transparent 5px 20px);
-  filter: blur(7px);
   mix-blend-mode: screen;
-  opacity: 0.55;
-  animation: caustic-flow 9s linear infinite, sea-sway 6.5s ease-in-out infinite;
+  animation: caustic-drift 11s linear infinite alternate;
 }
 
-.caustics::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(-66deg, rgb(196 220 255 / 13%) 0 8px, transparent 8px 30px);
-  animation: caustic-flow-back 14s linear infinite;
-}
-
-/* Swell: blurred highlights travelling across the water at different speeds,
-   which is what the eye reads as current. */
-.swell {
-  position: absolute;
-  inset: 0;
-  mix-blend-mode: screen;
-}
-
-.swell span {
-  position: absolute;
-  left: -42%;
-  width: 46%;
-  height: 9px;
-  border-radius: 50%;
-  corner-shape: round;
-  background: linear-gradient(90deg, transparent 0%, rgb(216 232 255 / 30%) 42%, rgb(240 246 255 / 34%) 58%, transparent 100%);
-  filter: blur(7px);
-  animation: swell-drift 7s linear infinite;
-}
-
-.swell span:nth-child(1) { top: 14%; }
-.swell span:nth-child(2) { top: 34%; height: 8px; animation-duration: 10.5s; animation-delay: -3.6s; }
-.swell span:nth-child(3) { top: 55%; height: 13px; animation-duration: 13s; animation-delay: -7.4s; }
-.swell span:nth-child(4) { top: 76%; height: 9px; animation-duration: 8.5s; animation-delay: -5.2s; }
-
-/* The whale's shadow on the sea floor, under the refracted copy. */
-.shadow {
-  position: absolute;
-  right: 8%;
-  bottom: 4%;
-  left: 14%;
-  height: 26px;
-  border-radius: 50%;
-  corner-shape: round;
-  background: radial-gradient(50% 50% at 50% 50%, rgb(3 6 28 / 55%), transparent 72%);
+.caustic {
+  stroke: rgb(226 238 255 / 26%);
+  stroke-width: 7;
+  stroke-linecap: round;
   filter: blur(4px);
 }
 
-.above,
-.below {
-  position: absolute;
-  inset: 0;
+.swell {
+  mix-blend-mode: screen;
 }
 
-/* Dry body: everything above the waterline. */
-.above {
-  clip-path: inset(0 0 60% 0);
+.swellGlint {
+  fill: rgb(220 235 255 / 30%);
+  filter: blur(7px);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: glint-drift 8s ease-in-out infinite alternate;
 }
 
-/* Underwater body: refracted — blurred and darkened by the water it is seen
-   through. The water itself is drawn over it by .depth. */
-.below {
-  clip-path: inset(40% 0 0 0);
-  filter: blur(1.6px) brightness(0.5) saturate(1.2);
+.swellGlint:nth-child(2) {
+  animation-duration: 12s;
+  animation-delay: -4s;
 }
 
-/* The water in front of the submerged body: a tint that deepens with depth and
-   a second caustic sheet playing over the whale, so the body reads as being
-   under the surface rather than pasted behind it. */
-.depth {
-  position: absolute;
-  inset: 0;
-  clip-path: inset(40% 0 0 0);
-  background: linear-gradient(180deg, rgb(88 124 255 / 30%), rgb(11 20 66 / 42%) 62%, rgb(4 8 32 / 30%));
+.swellGlint:nth-child(3) {
+  animation-duration: 15s;
+  animation-delay: -8s;
+}
+
+/* Water in front of the submerged body, so it reads as seen through the
+   surface rather than pasted behind it. */
+.tint {
   pointer-events: none;
 }
 
-.depth::after {
-  content: '';
-  position: absolute;
-  inset: -20% -20%;
-  background: repeating-linear-gradient(78deg, rgb(214 232 255 / 22%) 0 6px, transparent 6px 26px);
-  filter: blur(8px);
-  mix-blend-mode: screen;
-  opacity: 0.5;
-  animation: caustic-flow 12s linear infinite reverse, sea-sway 8s ease-in-out infinite;
-}
-
-/* One copy of the whale. Both copies run the same animation, so which one is
-   visible is decided by where the whale is, never by a second animation. */
+/* One copy of the whale. Positive Y is downward, so the mark rests under the
+   surface, rises to an apex that keeps its head in frame, and falls back. */
 .pet {
-  position: absolute;
-  right: 2px;
-  bottom: 20px;
-  width: 210px;
-  height: auto;
-  filter: drop-shadow(0 16px 20px rgb(6 12 44 / 35%));
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
   animation: whale-leap var(--leap) cubic-bezier(0.33, 0.7, 0.36, 1) var(--whale-loops) both;
   will-change: transform;
 }
 
-.glow {
-  opacity: 0.8;
-  animation: whale-lit var(--leap) ease-in-out var(--whale-loops) both;
+.pet[data-whale-mark='water'] {
+  filter: blur(1.5px) brightness(0.62) saturate(1.15);
 }
 
-.lit {
-  opacity: 0.55;
+.backLit {
+  stroke: rgb(255 255 255 / 44%);
+  stroke-width: 9;
+  stroke-linecap: round;
 }
 
-.rim {
-  fill: none;
-  stroke: rgb(226 236 255 / 75%);
-  stroke-width: 0.22;
-  stroke-linejoin: round;
+.mouth {
+  stroke: rgb(18 36 95 / 85%);
+  stroke-width: 3.4;
+  stroke-linecap: round;
 }
 
-/* The waterline itself, seen edge-on and catching the light. It stays put —
-   both whale copies are clipped against it — and only shimmers. */
-.surface {
-  position: absolute;
-  right: -14px;
-  bottom: 39.4%;
-  left: -14px;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 50%;
-  corner-shape: round;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(214 229 255 / 90%) 18%,
-    rgb(255 255 255 / 75%) 46%,
-    rgb(160 190 255 / 50%) 72%,
-    transparent
-  );
-  filter: blur(0.7px);
-  box-shadow: 0 0 14px rgb(160 196 255 / 55%);
-  animation: surface-breathe 6.5s ease-in-out infinite;
+.eye {
+  fill: #12245f;
 }
 
-/* A lighter sheet travelling along the waterline, so the surface reads wet. */
-.surface::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -45%;
-  width: 45%;
-  border-radius: 50%;
-  corner-shape: round;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 85%), transparent);
-  animation: swell-drift 5.5s linear infinite;
+.eyeGlint {
+  fill: rgb(255 255 255 / 92%);
 }
 
 /* Rings left on the surface at takeoff and at the splashdown. */
 .wake {
-  position: absolute;
-  right: -10px;
-  bottom: 37%;
-  left: -10px;
-  height: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
 }
 
-.wake span {
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  width: 62px;
-  height: 14px;
-  margin-left: -31px;
-  border: 1.5px solid rgb(206 224 255 / 75%);
-  border-radius: 50%;
-  corner-shape: round;
+.wakeRing {
+  fill: none;
+  stroke: rgb(226 238 255 / 70%);
+  stroke-width: 2;
   opacity: 0;
-  animation: wake-out 1.5s ease-out both;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: wake-out 1.6s ease-out both;
 }
 
-.wake span:nth-child(1) { animation-delay: 0.75s; }
-.wake span:nth-child(2) { animation-delay: 2.45s; }
-.wake span:nth-child(3) { animation-delay: 4.15s; }
-.wake span:nth-child(4) { animation-delay: 5.85s; }
+.wakeRing:nth-child(1) { animation-delay: 0.75s; }
+.wakeRing:nth-child(2) { animation-delay: 2.45s; }
 
-/* Droplets thrown clear at each splashdown. */
+/* The splash crown and its droplets belong to the breach: they erupt as the
+   whale leaves the water and are gone again once it has sunk back. */
+.splash {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: splash-pulse var(--leap) ease-out var(--whale-loops) both;
+}
+
 .drops {
-  position: absolute;
-  right: 0;
-  bottom: 39%;
-  left: 6%;
-  height: 70px;
+  animation: splash-fade var(--leap) linear var(--whale-loops) both;
 }
 
-.drops span {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  corner-shape: round;
-  background: radial-gradient(circle at 35% 30%, #fff, rgb(150 186 255 / 85%));
-  opacity: 0;
-  animation: drop-fall 1.05s ease-in both;
+.splashCrown {
+  fill: #ffffff;
+  filter: blur(0.4px);
 }
 
-.drops span:nth-child(1) { left: 16%; animation-delay: 2.45s; }
-.drops span:nth-child(2) { left: 24%; animation-delay: 2.55s; }
-.drops span:nth-child(3) { left: 32%; animation-delay: 2.5s; }
-.drops span:nth-child(4) { left: 18%; animation-delay: 5.85s; }
-.drops span:nth-child(5) { left: 26%; animation-delay: 5.95s; }
-
-/* Bubbles rising through the water, wobbling sideways as they go. */
-.orbs {
-  position: absolute;
-  inset: 0;
+.splashWing {
+  fill: #f2f7ff;
+  opacity: 0.94;
+  filter: blur(0.6px);
 }
 
-.orbs span {
-  position: absolute;
-  bottom: 4%;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  corner-shape: round;
-  background: radial-gradient(circle at 34% 30%, rgb(255 255 255 / 95%), rgb(150 190 255 / 35%));
-  opacity: 0;
-  animation:
-    orbs-rise 3.4s linear infinite,
-    orbs-wobble 1.6s ease-in-out infinite alternate;
+.splashFoam {
+  fill: rgb(255 255 255 / 92%);
+  filter: blur(2px);
 }
 
-.orbs span:nth-child(1) { left: 22%; animation-delay: 0.9s, 0s; }
-.orbs span:nth-child(2) { left: 58%; width: 4px; height: 4px; animation-delay: 2.1s, -0.4s; }
-.orbs span:nth-child(3) { left: 74%; width: 8px; height: 8px; animation-delay: 1.5s, -0.9s; }
-.orbs span:nth-child(4) { left: 44%; animation-delay: 3s, -1.3s; }
+/* Droplets thrown clear, each falling on its own beat. */
+.drop {
+  fill: rgb(244 249 255 / 92%);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: drop-fall 1.35s ease-in infinite;
+}
+
+.drop:nth-child(2) { animation-delay: -0.35s; }
+.drop:nth-child(3) { animation-delay: -0.8s; }
+.drop:nth-child(4) { animation-delay: -0.15s; }
+.drop:nth-child(5) { animation-delay: -1.05s; }
+.drop:nth-child(6) { animation-delay: -0.55s; }
+.drop:nth-child(7) { animation-delay: -0.95s; }
+.drop:nth-child(8) { animation-delay: -0.7s; }
 
 /* The message: a water bubble, not a card, so the notice looks like it drifted
    up out of the sea rather than being pasted over the app. */
 .bubble {
   position: absolute;
-  top: 2px;
+  top: 4px;
   left: 2px;
   display: flex;
   flex-direction: column;
@@ -314,7 +201,7 @@
   border: 0.5px solid rgb(255 255 255 / 50%);
   border-radius: 16px 16px 16px 5px;
   appearance: none;
-  background: linear-gradient(152deg, rgb(147 178 255 / 96%), var(--whale-blue) 58%, rgb(52 80 220 / 94%));
+  background: linear-gradient(152deg, rgb(147 178 255 / 96%), #4d6bfe 58%, rgb(52 80 220 / 94%));
   box-shadow:
     0 12px 26px rgb(18 32 96 / 34%),
     inset 0 1px 0 rgb(255 255 255 / 50%),
@@ -363,7 +250,7 @@
 
 .close {
   position: absolute;
-  top: 0;
+  top: 2px;
   right: 0;
   display: grid;
   width: 22px;
@@ -396,78 +283,63 @@
   height: 11px;
 }
 
-/* Takeoff, apex, and splashdown of one breach. Positive Y is downward, so the
-   mark rests under the surface, rises to an apex that keeps the tail in the
-   water, and falls back — the stage's air is sized for that apex. */
 @keyframes whale-leap {
-  0% { transform: translateY(55px) rotate(5deg); }
-  12% { transform: translateY(40px) rotate(2deg); }
-  22% { transform: translateY(-4px) rotate(-3deg); }
-  40% { transform: translateY(-100px) rotate(-8deg) scale(1.02); }
-  56% { transform: translateY(-56px) rotate(-4deg); }
-  72% { transform: translateY(48px) rotate(6deg); }
-  86% { transform: translateY(55px) rotate(5deg); }
-  100% { transform: translateY(55px) rotate(5deg); }
+  0% { transform: translateY(50px) rotate(5deg); }
+  12% { transform: translateY(28px) rotate(2deg); }
+  22% { transform: translateY(-14px) rotate(-3deg); }
+  40% { transform: translateY(-200px) rotate(-8deg) scale(1.02); }
+  56% { transform: translateY(-150px) rotate(-4deg); }
+  72% { transform: translateY(40px) rotate(6deg); }
+  86% { transform: translateY(50px) rotate(5deg); }
+  100% { transform: translateY(50px) rotate(5deg); }
 }
 
-@keyframes whale-lit {
-  0%, 100% { opacity: 0.35; }
-  40% { opacity: 1; }
+@keyframes sky-breathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 
-/* One stripe period along x: 20px at 72deg. */
-@keyframes caustic-flow {
-  from { background-position: 0 0; }
-  to { background-position: 21px 0; }
+@keyframes wave-roll {
+  0%, 100% { transform: translateX(-7px); }
+  50% { transform: translateX(7px); }
 }
 
-/* The crossing sheet: 30px at 66deg, drifting the other way. */
-@keyframes caustic-flow-back {
-  from { background-position: 0 0; }
-  to { background-position: -33px 0; }
+@keyframes caustic-drift {
+  from { transform: translateX(-14px); }
+  to { transform: translateX(14px); }
 }
 
-@keyframes sea-sway {
-  0%, 100% { transform: translate3d(-1.5%, 0, 0) scaleY(1); }
-  50% { transform: translate3d(1.5%, 1.5%, 0) scaleY(1.06); }
-}
-
-@keyframes sea-breathe {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.08); }
-}
-
-@keyframes surface-breathe {
-  0%, 100% { opacity: 0.85; transform: scaleX(1); }
-  50% { opacity: 1; transform: scaleX(1.015); }
-}
-
-@keyframes swell-drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(350%); }
+@keyframes glint-drift {
+  from { transform: translateX(-40px) scaleX(0.86); }
+  to { transform: translateX(40px) scaleX(1.12); }
 }
 
 @keyframes wake-out {
-  0% { opacity: 0; transform: scale(0.35); }
-  22% { opacity: 0.9; }
-  100% { opacity: 0; transform: scale(1.5); }
+  0% { opacity: 0; transform: scale(0.3); }
+  20% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+
+@keyframes splash-pulse {
+  0%, 5% { opacity: 0; transform: scale(0.68); }
+  15% { opacity: 1; transform: scale(1.05); }
+  40% { opacity: 0.96; transform: scale(0.98); }
+  68% { opacity: 1; transform: scale(1.08); }
+  80% { opacity: 0.4; transform: scale(0.9); }
+  90%, 100% { opacity: 0; transform: scale(0.68); }
+}
+
+@keyframes splash-fade {
+  0%, 8% { opacity: 0; }
+  20% { opacity: 1; }
+  68% { opacity: 1; }
+  84%, 100% { opacity: 0; }
 }
 
 @keyframes drop-fall {
-  0% { opacity: 0; transform: translateY(6px) scale(0.6); }
-  18% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-42px) scale(1); }
-}
-
-@keyframes orbs-rise {
-  0% { opacity: 0; }
-  12% { opacity: 0.9; }
-  100% { opacity: 0; transform: translateY(-96px); }
-}
-
-@keyframes orbs-wobble {
-  from { margin-left: -3px; }
-  to { margin-left: 3px; }
+  0% { opacity: 0; transform: translateY(-8px) scale(0.7); }
+  16% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(42px) scale(1.05); }
 }
 
 @keyframes notice-in {
@@ -480,31 +352,22 @@
 @media (prefers-reduced-motion: reduce) {
   .pet {
     animation: none;
-    transform: translateY(10px);
+    transform: translateY(-24px);
   }
 
-  .glow {
-    animation: none;
-    opacity: 0.6;
-  }
-
-  .sea,
+  .sky,
+  .wave,
   .caustics,
-  .caustics::after,
-  .depth::after,
-  .swell span,
-  .surface,
-  .surface::after,
-  .wake span,
-  .drops span,
-  .orbs span,
+  .swellGlint,
+  .wakeRing,
+  .splash,
+  .drop,
   .bubble {
     animation: none;
   }
 
-  .wake span,
-  .drops span,
-  .orbs span {
+  .wakeRing,
+  .drop {
     opacity: 0;
   }
 }
