@@ -108,6 +108,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The host commits accepted images before session events; provider adapters resolve authorized durable references into provider-native content.',
   },
   {
+    key: 'contextImport',
+    pkg: 'context-import',
+    title: 'Vendor-neutral foreign session import',
+    mode: 'core',
+    note: 'Parses Codex and Claude Code session logs into a vendor-neutral transcript and publishes the seed through `ctx.agents.create`; the package\'s own `/import` command is the only in-repo consumer.',
+  },
+  {
     key: 'fileUploads',
     pkg: 'client-file-upload',
     title: 'Agent-scoped staged file uploads',

@@ -172,8 +172,8 @@ interface ForeignDrop {
 interface ImportOutcome {
   /** Session the imported history was published under. */
   readonly sessionId: SessionId
-  /** Seed events written to the new session. */
-  readonly events: number
+  /** Seed events written to the new session, contiguous from seq 0. */
+  readonly events: readonly SessionEvent[]
   /** Foreign conversation elements the translation left out. */
   readonly dropped: readonly ForeignDrop[]
   /** Title the import would show for the conversation. */
