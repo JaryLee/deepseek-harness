@@ -44,10 +44,13 @@ export async function bootClient(options: ClientBootOptions): Promise<void> {
     onEntryState?.(entry.options.name, STATE_LABELS[entry.fiber.state])
   })
 
-  const rows = manifest.plugins.map(row => row.id)
-  await Promise.all(rows.map(async (name) => {
+  await Promise.all(manifest.plugins.map(async (row) => {
+    const name = row.id
     onEntryState?.(name, 'loading')
-    const id = await loader.create({ name })
+    const id = await loader.create({
+      name,
+      ...row.config === undefined ? {} : { config: row.config },
+    })
     if (loader.resolve(id).fiber === undefined) onEntryState?.(name, 'failed')
   }))
 

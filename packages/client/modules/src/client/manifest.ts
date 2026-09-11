@@ -61,6 +61,17 @@ export interface WebBootEntry {
   immediately?: boolean
   /** Non-baseline module specifiers this row requests; omitted when it requests none. */
   external?: string[]
+  /**
+   * Browser-plane configuration the Loader entry declares for this client
+   * plugin. The host withholds a config that is not browser-plane data: a
+   * `!!js` expression is authored against the Loader context that owns the row
+   * — the host's, in a shipped Web profile — and the browser Loader would
+   * evaluate it there, against services the browser does not have. The value
+   * travels as JSON, so non-JSON values do not survive the round trip — a
+   * function, `undefined`, or a symbol drops out, a `Date` becomes a string,
+   * and a `Map` or `Set` becomes an empty object.
+   */
+  config?: unknown
 }
 
 /** Initial scheduling phase for one content-addressed combo script. */
@@ -116,6 +127,8 @@ export interface BootPluginRow {
   inject: string[]
   /** Stage-one prefetch tier (false when the wire omits it). */
   immediately: boolean
+  /** Row configuration the cordis entry is created with; absent when the wire omits it. */
+  config?: unknown
 }
 
 /** The parsed boot manifest: one wire, two consumer views. */
@@ -255,6 +268,10 @@ export function parseBootManifest(wire: unknown): BootManifest {
       id: row.id,
       inject: inject === undefined ? [] : [...inject],
       immediately: row.immediately === true,
+      // A null config is a row that declares no value, matching the Loader's own
+      // treatment of null: delivering it would override a client plugin's
+      // default parameter and crash on first property access.
+      ...(row.config === undefined || row.config === null ? {} : { config: row.config }),
     })
   }
 

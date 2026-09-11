@@ -82,6 +82,15 @@ interface ClientPackageSource extends ResolvedPkgMeta {
   loaderName: string
   /** Resolution base of the config tree that owns the row. */
   baseUrl: string
+  /**
+   * Browser-plane config the Loader row declares for its client plugin, carried
+   * to the boot graph. Absent when the row declares none, or when its config is
+   * not browser-plane data (see {@link isBrowserPlaneConfig}) — a host-plane
+   * config is the host half's and must not be evaluated in the browser. A
+   * changed config yields a new {@link sourceKey}, so the composed row is
+   * rebuilt with it.
+   */
+  config?: unknown
   /** Stable cache and contribution key for this source. */
   sourceKey: string
 }
@@ -135,6 +144,8 @@ interface WebPluginRecord {
   /** Loader resolution input that selected this package instance. */
   sourceKey: string
   meta: PkgMeta
+  /** Config the owning Loader row declared, re-applied to every rebuilt entry. */
+  config?: unknown
   /** Exact build artifact included in the startup batches. */
   bundle: Buffer
   /** Pre-read filesystem baseline handed to the HMR watcher. */
@@ -171,6 +182,28 @@ const COMBO_REVISION_PLACEHOLDER = '0'.repeat(HASH_REVISION_LENGTH)
 const SOURCE_MAP_TRAILER = /(?:\r?\n)?\/\/# sourceMappingURL=[^\r\n]*(?:\r?\n)?$/
 /** Debugger source name appended to page bundles in the WebWorker image. */
 const SOURCE_URL_TRAILER = /(?:\r?\n)?\/\/# sourceURL=([^\r\n]+)(?:\r?\n)?$/
+
+/**
+ * Whether a row config is browser-plane data.
+ *
+ * A `!!js` expression is authored against a Loader context — in a shipped Web
+ * profile, the HOST context, whose services the browser does not have. The
+ * Loader interpolates every entry's config in the context that creates it, so
+ * delivering an expression verbatim would evaluate a host expression in the
+ * browser and fail the whole boot. Only a config free of expressions crosses
+ * the wire; the deployed `connection` row — a dual-face row whose config feeds
+ * its host half — is exactly such a row.
+ * @param value - the config node as the Loader entry holds it.
+ * @param seen - cycle guard for a config that is not a tree.
+ * @returns true when the config contains no `!!js` expression anywhere.
+ */
+function isBrowserPlaneConfig(value: unknown, seen = new WeakSet<object>()): boolean {
+  if (value === null || typeof value !== 'object') return true
+  if (seen.has(value)) return true
+  seen.add(value)
+  if ('__jsExpr' in value) return false
+  return Object.values(value).every(item => isBrowserPlaneConfig(item, seen))
+}
 
 /** Resolve `exports["./client"]` to a relative path, accepting the string and one-level conditional forms. */
 function clientExportOf(pkgName: string, exportsField: unknown): string | undefined {
@@ -365,8 +398,8 @@ function buildBatch(phase: WebBootBatchPhase, records: readonly WebPluginRecord[
   }
 }
 
-/** Graph row for one bundle rev (url carries the rev as its cache-busting query). */
-function graphRow(id: string, rev: string, fields: WebBootRowFields): WebBootEntry {
+/** Graph row for one bundle rev (url carries the rev as its cache-busting query; a null or absent config is omitted). */
+function graphRow(id: string, rev: string, fields: WebBootRowFields, config?: unknown): WebBootEntry {
   return {
     id,
     url: comboUrl([id], rev),
@@ -374,6 +407,7 @@ function graphRow(id: string, rev: string, fields: WebBootRowFields): WebBootEnt
     ...(fields.inject !== undefined ? { inject: fields.inject } : {}),
     ...(fields.immediately ? { immediately: true } : {}),
     ...(fields.external.length > 0 ? { external: fields.external } : {}),
+    ...(config === undefined || config === null ? {} : { config }),
   }
 }
 
@@ -608,7 +642,7 @@ export class ClientModuleRegistry extends Service {
     const rev = artifactRevision(bundle, sourceMap)
     record.baseline = baseline
     if (rev === record.entry.rev) return rev
-    record.entry = graphRow(id, rev, record.meta)
+    record.entry = graphRow(id, rev, record.meta, record.config)
     record.bundle = bundle
     if (sourceMap === undefined) delete record.sourceMap
     else record.sourceMap = sourceMap
@@ -818,8 +852,30 @@ export class ClientModuleRegistry extends Service {
     return undefined
   }
 
-  private sourceKey(loaderName: string, baseUrl: string): string {
-    return `${baseUrl}\0${loaderName}`
+  /**
+   * Stable key for one active Loader source. The row's config participates, so a
+   * scan that observes a different config composes a different row. The value is
+   * read when the source is resolved, so a running entry keeps the config it was
+   * composed with until the entry is recreated.
+   * @param loaderName - the row's module specifier.
+   * @param baseUrl - resolution base of the config tree owning the row.
+   * @param config - the row's config, already normalized to absent-or-value.
+   * @returns the source key.
+   * @throws {Error} when the config cannot be serialized for the boot wire.
+   */
+  private sourceKey(loaderName: string, baseUrl: string, config?: unknown): string {
+    const base = `${baseUrl}\0${loaderName}`
+    if (config === undefined) return base
+    let serialized: string
+    try {
+      serialized = JSON.stringify(config)
+    } catch (error) {
+      throw new Error(
+        `client-modules: loader entry ${loaderName} declares a config that cannot cross the boot wire as JSON`,
+        { cause: error },
+      )
+    }
+    return `${base}\0${serialized}`
   }
 
   /** Capture the bundle stats before reading its bytes. */
@@ -908,7 +964,19 @@ export class ClientModuleRegistry extends Service {
     }
     const resolved = this.resolveMeta(loaderName, baseUrl)
     if (resolved === null) return undefined
-    return { ...resolved, loaderName, baseUrl, sourceKey: this.sourceKey(loaderName, baseUrl) }
+    const config: unknown = entry.options.config
+    // `config: null` is how a row with no configuration value parses, and a
+    // client plugin's `apply(ctx, config = {})` default does not cover null.
+    const declared = config === undefined || config === null ? undefined : config
+    // A host-plane config feeds the row's host half. Delivering it would make the
+    // browser Loader evaluate its `!!js` expressions against a context that has
+    // none of those services, which fails the whole boot.
+    const deliverable = declared !== undefined && isBrowserPlaneConfig(declared) ? declared : undefined
+    return {
+      ...resolved, loaderName, baseUrl,
+      ...deliverable === undefined ? {} : { config: deliverable },
+      sourceKey: this.sourceKey(loaderName, baseUrl, deliverable),
+    }
   }
 
   private reconcilePackage(packageName: string): boolean {
@@ -932,10 +1000,11 @@ export class ClientModuleRegistry extends Service {
     const snapshot = this.initialBundleSnapshot(packageName, source.meta.clientPath)
     const rev = this.allocateInitialRevision()
     this.table.set(packageName, {
-      entry: graphRow(packageName, rev, source.meta),
+      entry: graphRow(packageName, rev, source.meta, source.config),
       loaderName: source.loaderName,
       sourceKey: source.sourceKey,
       meta: source.meta,
+      ...source.config === undefined ? {} : { config: source.config },
       bundle: snapshot.bundle,
       baseline: snapshot.baseline,
       ...(snapshot.sourceMap === undefined ? {} : { sourceMap: snapshot.sourceMap }),

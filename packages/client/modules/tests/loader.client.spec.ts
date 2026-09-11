@@ -368,6 +368,28 @@ describe('boot manifest wire', () => {
     ])
   })
 
+  it('carries a row config into the plugin view only, treating null as absent', () => {
+    const config = { pricing: { a: { input: 1, output: 2, cacheRead: 0.1, cacheWrite: 1 } } }
+    const manifest = parseBootManifest({
+      rev: 'graph',
+      entries: [
+        { id: 'a', url: '/plugins/a/client.js', rev: '1', config },
+        { id: 'b', url: '/plugins/b/client.js', rev: '2' },
+        // An empty `config:` key parses to null; delivering it would defeat a
+        // client plugin's `apply(ctx, config = {})` default.
+        { id: 'c', url: '/plugins/c/client.js', rev: '3', config: null },
+      ],
+      batches: [{ phase: 'application', url: '/batch.js', rev: 'batch', entries: ['a', 'b', 'c'] }],
+    })
+    expect(manifest.plugins).toEqual([
+      { id: 'a', inject: [], immediately: false, config },
+      { id: 'b', inject: [], immediately: false },
+      { id: 'c', inject: [], immediately: false },
+    ])
+    // The module table only fetches bundles; only entry composition needs the config.
+    expect(manifest.modules.some(row => 'config' in row)).toBe(false)
+  })
+
   it('rejects a non-array external', () => {
     expect(() => parseBootManifest({
       rev: 'graph',

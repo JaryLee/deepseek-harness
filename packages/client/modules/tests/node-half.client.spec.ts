@@ -64,6 +64,8 @@ function constructWithRoute(
     contextBaseUrl?: string
     entryBaseUrl?: string
     internal?: NonNullable<Context['loader']['internal']>
+    /** Config each named Loader row declares; read per scan, so a mutation is visible. */
+    configs?: Record<string, unknown>
   } = {},
 ): { context: Context; service: ClientModuleRegistry; route: WebRoute } {
   const ctx = new Context()
@@ -72,8 +74,9 @@ function constructWithRoute(
     internal: options.internal,
     *entries() {
       for (const packageName of packageNames) {
+        const config = options.configs?.[packageName]
         yield {
-          options: { name: packageName },
+          options: { name: packageName, ...config === undefined ? {} : { config } },
           fiber: {},
           disabled: false,
           parent: { tree: { ctx: { baseUrl: options.entryBaseUrl ?? ctx.baseUrl } } },
@@ -390,6 +393,89 @@ describe('client bundle activation', () => {
     expect(service.graph().entries.map(entry => entry.id)).toEqual([packageName])
     expect(service.graph().entries[0]!.rev).not.toBe(firstRevision)
     expect(service.clientPath(packageName)).toBe(clientPath)
+  })
+
+  it('carries each row declared config into its composed graph entry', () => {
+    const configured = '@fixture/configured'
+    const plain = '@fixture/unconfigured'
+    const nulled = '@fixture/null-configured'
+    for (const packageName of [configured, plain, nulled]) {
+      const clientPath = writePackage(packageName)
+      mkdirSync(dirname(clientPath), { recursive: true })
+      writeFileSync(clientPath, 'module.exports = {}\n')
+    }
+    const config = { pricing: { m: { input: 1, output: 2, cacheRead: 0.1, cacheWrite: 1 } } }
+    const { service } = constructWithRoute([configured, plain, nulled], {
+      configs: { [configured]: config, [nulled]: null },
+    })
+
+    const rows = service.graph().entries
+    expect(rows.find(row => row.id === configured)?.config).toEqual(config)
+    // A row that declares no config must not gain one — neither an absent key nor
+    // an empty `config:` that parsed to null.
+    expect(rows.find(row => row.id === plain)).not.toHaveProperty('config')
+    expect(rows.find(row => row.id === nulled)).not.toHaveProperty('config')
+  })
+
+  it('withholds a config that is not browser-plane data', () => {
+    const hostPlane = '@fixture/host-plane-config'
+    const nested = '@fixture/nested-host-plane-config'
+    const literal = '@fixture/literal-config'
+    for (const packageName of [hostPlane, nested, literal]) {
+      const clientPath = writePackage(packageName)
+      mkdirSync(dirname(clientPath), { recursive: true })
+      writeFileSync(clientPath, 'module.exports = {}\n')
+    }
+    const { service } = constructWithRoute([hostPlane, nested, literal], {
+      configs: {
+        // The deployed `connection` row is exactly this row: a dual-face row
+        // whose `!!js` config feeds its host half.
+        [hostPlane]: { trustedHosts: { __jsExpr: 'ctx.webRuntime.trustedHosts' } },
+        [nested]: { outer: [{ inner: { __jsExpr: 'process.env.DSH_TOOLS_MODE' } }] },
+        [literal]: { trustedHosts: ['127.0.0.1'] },
+      },
+    })
+
+    const rows = service.graph().entries
+    // Delivering an expression would make the browser Loader evaluate a host
+    // expression against services it does not have, which fails the whole boot.
+    expect(rows.find(row => row.id === hostPlane)).not.toHaveProperty('config')
+    expect(rows.find(row => row.id === nested)).not.toHaveProperty('config')
+    // An expression-free sibling still arrives, at any depth.
+    expect(rows.find(row => row.id === literal)?.config).toEqual({ trustedHosts: ['127.0.0.1'] })
+  })
+
+  it('fails loudly on a config that cannot cross the JSON wire', () => {
+    const packageName = '@fixture/cyclic-config'
+    const clientPath = writePackage(packageName)
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(clientPath, 'module.exports = {}\n')
+    // YAML anchors can express a cycle; the graph is JSON, so composition rejects it
+    // rather than importing a value the browser could never receive.
+    const cyclic: Record<string, unknown> = { tier: 1 }
+    cyclic.self = cyclic
+    expect(() => constructWithRoute([packageName], { configs: { [packageName]: cyclic } }))
+      .toThrow(/cannot cross the boot wire as JSON/)
+  })
+
+  it('rebuilds a composed row when a rescan sees a changed config', async () => {
+    const packageName = '@fixture/reconfigured'
+    const clientPath = writePackage(packageName)
+    mkdirSync(dirname(clientPath), { recursive: true })
+    writeFileSync(clientPath, 'module.exports = {}\n')
+    const configs: Record<string, unknown> = { [packageName]: { tier: 1 } }
+    const { context, service } = constructWithRoute([packageName], { configs })
+    const firstRevision = service.graph().entries[0]!.rev
+    expect(service.graph().entries[0]!.config).toEqual({ tier: 1 })
+
+    // A config-only edit does not recreate the Loader entry, so this drives the
+    // scan directly: what is pinned is that a scan observing a new config composes
+    // a new row, not that a live edit propagates on its own.
+    configs[packageName] = { tier: 2 }
+    emitLoaderEntryChange(context, packageName)
+    await Promise.resolve()
+    expect(service.graph().entries[0]!.config).toEqual({ tier: 2 })
+    expect(service.graph().entries[0]!.rev).not.toBe(firstRevision)
   })
 
   it('uses owning-tree package resolution for an import-only Worker module loader', () => {
