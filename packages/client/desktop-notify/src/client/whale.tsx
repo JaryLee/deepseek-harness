@@ -25,9 +25,9 @@ import css from './whale.module.css'
 /** The waterline in scene coordinates, and the sea's depth below it. */
 const WATERLINE = 300
 /** Width and height of the scene, in the same units as the stage's pixels. */
-const SCENE = { width: 340, height: 440 }
+const SCENE = { width: 340, height: 460 }
 /** Where the whale sits before the leap moves it. */
-const WHALE = { x: 158, y: 380 }
+const WHALE = { x: 172, y: 330 }
 
 /** Wave silhouettes: deep to front, each spanning past both scene edges. The
  * deep wave's crest is the visible surface, so the whale's clip line is the
@@ -35,21 +35,26 @@ const WHALE = { x: 158, y: 380 }
 const WAVE = {
   deep: `M-24 304 C40 292 78 316 132 310 C186 304 226 288 364 298 L364 ${SCENE.height} L-24 ${SCENE.height} Z`,
   mid: `M-24 336 C30 322 82 348 140 340 C198 332 250 314 364 328 L364 ${SCENE.height} L-24 ${SCENE.height} Z`,
-  front: `M-24 364 C36 350 84 374 146 364 C208 354 262 338 364 352 L364 ${SCENE.height} L-24 ${SCENE.height} Z`,
+  front: `M-24 366 C36 352 84 376 146 366 C208 356 262 340 364 354 L364 ${SCENE.height} L-24 ${SCENE.height} Z`,
 }
 
-/** The splash crown: spikes breaking around the waterline, tallest at the middle. */
+/** The splash: a fan of spray breaking outward from the waterline, kept low
+ * enough that the whale's body always clears it. */
 const CROWN = [
-  `M${WHALE.x - 96} ${WATERLINE + 8}`,
-  `C${WHALE.x - 88} ${WATERLINE - 16} ${WHALE.x - 80} ${WATERLINE - 40} ${WHALE.x - 70} ${WATERLINE - 26}`,
-  `C${WHALE.x - 64} ${WATERLINE - 54} ${WHALE.x - 54} ${WATERLINE - 66} ${WHALE.x - 48} ${WATERLINE - 32}`,
-  `C${WHALE.x - 42} ${WATERLINE - 72} ${WHALE.x - 30} ${WATERLINE - 84} ${WHALE.x - 24} ${WATERLINE - 28}`,
-  `C${WHALE.x - 16} ${WATERLINE - 96} ${WHALE.x - 2} ${WATERLINE - 102} ${WHALE.x + 2} ${WATERLINE - 24}`,
-  `C${WHALE.x + 10} ${WATERLINE - 88} ${WHALE.x + 24} ${WATERLINE - 76} ${WHALE.x + 28} ${WATERLINE - 30}`,
-  `C${WHALE.x + 36} ${WATERLINE - 62} ${WHALE.x + 48} ${WATERLINE - 50} ${WHALE.x + 54} ${WATERLINE - 32}`,
-  `C${WHALE.x + 64} ${WATERLINE - 56} ${WHALE.x + 82} ${WATERLINE - 30} ${WHALE.x + 96} ${WATERLINE + 8}`,
-  `C${WHALE.x + 50} ${WATERLINE - 6} ${WHALE.x - 50} ${WATERLINE - 6} ${WHALE.x - 96} ${WATERLINE + 8} Z`,
+  `M${WHALE.x - 156} ${WATERLINE + 12}`,
+  `C${WHALE.x - 141} ${WATERLINE - 12} ${WHALE.x - 128} ${WATERLINE - 36} ${WHALE.x - 113} ${WATERLINE - 26}`,
+  `C${WHALE.x - 101} ${WATERLINE - 48} ${WHALE.x - 84} ${WATERLINE - 66} ${WHALE.x - 74} ${WATERLINE - 24}`,
+  `C${WHALE.x - 61} ${WATERLINE - 72} ${WHALE.x - 41} ${WATERLINE - 78} ${WHALE.x - 31} ${WATERLINE - 22}`,
+  `C${WHALE.x - 18} ${WATERLINE - 88} ${WHALE.x + 5} ${WATERLINE - 92} ${WHALE.x + 13} ${WATERLINE - 20}`,
+  `C${WHALE.x + 26} ${WATERLINE - 78} ${WHALE.x + 46} ${WATERLINE - 70} ${WHALE.x + 54} ${WATERLINE - 24}`,
+  `C${WHALE.x + 67} ${WATERLINE - 62} ${WHALE.x + 84} ${WATERLINE - 52} ${WHALE.x + 95} ${WATERLINE - 22}`,
+  `C${WHALE.x + 113} ${WATERLINE - 40} ${WHALE.x + 138} ${WATERLINE - 14} ${WHALE.x + 156} ${WATERLINE + 12}`,
+  `C${WHALE.x + 77} ${WATERLINE - 2} ${WHALE.x - 77} ${WATERLINE - 2} ${WHALE.x - 156} ${WATERLINE + 12} Z`,
 ].join(' ')
+
+/** The whale's outline: a rounded head that tapers into the tail stock. */
+const BODY = 'M-108 0 C-104 -30 -86 -50 -48 -55 C-4 -61 48 -52 82 -32 C94 -24 102 -12 106 -2 '
+  + 'C102 8 94 18 82 26 C48 46 -4 55 -48 55 C-86 50 -104 30 -108 0 Z'
 
 /** The registration-side face the overlay's slot entry injects. */
 export interface WhaleFace {
@@ -183,7 +188,7 @@ export function WhaleStage(props: WhaleStageProps) {
             <path id={`${id}-wave-front`} d={WAVE.front} />
           </defs>
 
-          <ellipse className={css.sky} cx="164" cy="200" rx="172" ry="196" fill={`url(#${id}-sky)`} />
+          <ellipse className={css.sky} cx="164" cy="210" rx="174" ry="208" fill={`url(#${id}-sky)`} />
 
           <g className={css.sea} mask={`url(#${id}-mask-left)`}>
             <g mask={`url(#${id}-mask-deep)`}>
@@ -215,43 +220,43 @@ export function WhaleStage(props: WhaleStageProps) {
             </g>
           </g>
 
+          <g className={css.splash}>
+            <path className={css.splashCrown} d={CROWN} fill={`url(#${id}-foam)`} />
+            <path
+              className={css.splashWing}
+              d={`M${WHALE.x - 100} ${WATERLINE + 8} C${WHALE.x - 132} ${WATERLINE - 22} ${WHALE.x - 166} ${WATERLINE - 10} ${WHALE.x - 190} ${WATERLINE + 12} C${WHALE.x - 154} ${WATERLINE + 22} ${WHALE.x - 122} ${WATERLINE + 22} ${WHALE.x - 100} ${WATERLINE + 14} Z`}
+              fill={`url(#${id}-foam)`}
+            />
+            <path
+              className={css.splashWing}
+              d={`M${WHALE.x + 100} ${WATERLINE + 8} C${WHALE.x + 132} ${WATERLINE - 22} ${WHALE.x + 166} ${WATERLINE - 10} ${WHALE.x + 190} ${WATERLINE + 12} C${WHALE.x + 154} ${WATERLINE + 22} ${WHALE.x + 122} ${WATERLINE + 22} ${WHALE.x + 100} ${WATERLINE + 14} Z`}
+              fill={`url(#${id}-foam)`}
+            />
+            <ellipse className={css.splashFoam} cx={WHALE.x - 74} cy={WATERLINE + 12} rx="48" ry="15" />
+            <ellipse className={css.splashFoam} cx={WHALE.x + 78} cy={WATERLINE + 14} rx="44" ry="14" />
+            <ellipse className={css.splashFoam} cx={WHALE.x} cy={WATERLINE + 18} rx="76" ry="19" />
+          </g>
+
+          <g className={css.drops}>
+            <circle className={css.drop} cx={WHALE.x - 118} cy={WATERLINE - 26} r="7" />
+            <circle className={css.drop} cx={WHALE.x - 92} cy={WATERLINE - 54} r="5" />
+            <circle className={css.drop} cx={WHALE.x - 58} cy={WATERLINE - 76} r="4" />
+            <circle className={css.drop} cx={WHALE.x - 16} cy={WATERLINE - 88} r="6" />
+            <circle className={css.drop} cx={WHALE.x + 30} cy={WATERLINE - 80} r="5" />
+            <circle className={css.drop} cx={WHALE.x + 76} cy={WATERLINE - 56} r="7" />
+            <circle className={css.drop} cx={WHALE.x + 112} cy={WATERLINE - 24} r="4" />
+            <circle className={css.drop} cx={WHALE.x - 34} cy={WATERLINE - 40} r="3" />
+          </g>
+
           <g className={css.wake}>
-            <ellipse className={css.wakeRing} cx={WHALE.x} cy={WATERLINE + 4} rx="26" ry="7" />
-            <ellipse className={css.wakeRing} cx={WHALE.x} cy={WATERLINE + 4} rx="26" ry="7" />
+            <ellipse className={css.wakeRing} cx={WHALE.x} cy={WATERLINE + 4} rx="30" ry="8" />
+            <ellipse className={css.wakeRing} cx={WHALE.x} cy={WATERLINE + 4} rx="30" ry="8" />
           </g>
 
           <g clipPath={`url(#${id}-above)`}>
             <g className={css.pet} data-whale-mark="air">
               <WhaleArt id={`${id}a`} />
             </g>
-          </g>
-
-          <g className={css.splash}>
-            <path className={css.splashCrown} d={CROWN} fill={`url(#${id}-foam)`} />
-            <path
-              className={css.splashWing}
-              d={`M${WHALE.x - 88} ${WATERLINE + 6} C${WHALE.x - 118} ${WATERLINE - 26} ${WHALE.x - 152} ${WATERLINE - 14} ${WHALE.x - 178} ${WATERLINE + 6} C${WHALE.x - 144} ${WATERLINE + 16} ${WHALE.x - 112} ${WATERLINE + 18} ${WHALE.x - 88} ${WATERLINE + 12} Z`}
-              fill={`url(#${id}-foam)`}
-            />
-            <path
-              className={css.splashWing}
-              d={`M${WHALE.x + 88} ${WATERLINE + 6} C${WHALE.x + 118} ${WATERLINE - 26} ${WHALE.x + 152} ${WATERLINE - 14} ${WHALE.x + 178} ${WATERLINE + 6} C${WHALE.x + 144} ${WATERLINE + 16} ${WHALE.x + 112} ${WATERLINE + 18} ${WHALE.x + 88} ${WATERLINE + 12} Z`}
-              fill={`url(#${id}-foam)`}
-            />
-            <ellipse className={css.splashFoam} cx={WHALE.x - 62} cy={WATERLINE + 8} rx="40" ry="13" />
-            <ellipse className={css.splashFoam} cx={WHALE.x + 66} cy={WATERLINE + 10} rx="36" ry="12" />
-            <ellipse className={css.splashFoam} cx={WHALE.x} cy={WATERLINE + 14} rx="62" ry="16" />
-          </g>
-
-          <g className={css.drops}>
-            <circle className={css.drop} cx={WHALE.x - 88} cy={WATERLINE - 30} r="7" />
-            <circle className={css.drop} cx={WHALE.x - 62} cy={WATERLINE - 58} r="5" />
-            <circle className={css.drop} cx={WHALE.x - 30} cy={WATERLINE - 82} r="4" />
-            <circle className={css.drop} cx={WHALE.x + 8} cy={WATERLINE - 96} r="6" />
-            <circle className={css.drop} cx={WHALE.x + 44} cy={WATERLINE - 74} r="5" />
-            <circle className={css.drop} cx={WHALE.x + 74} cy={WATERLINE - 48} r="7" />
-            <circle className={css.drop} cx={WHALE.x + 96} cy={WATERLINE - 18} r="4" />
-            <circle className={css.drop} cx={WHALE.x - 44} cy={WATERLINE - 34} r="3" />
           </g>
         </svg>
 
@@ -292,64 +297,55 @@ export function WhaleStage(props: WhaleStageProps) {
 function WhaleArt(props: { id: string }) {
   const { id } = props
   return (
-    <g transform={`translate(${WHALE.x} ${WHALE.y}) rotate(-24) scale(1.06)`}>
+    <g transform={`translate(${WHALE.x} ${WHALE.y}) rotate(-26) scale(0.88)`}>
       <defs>
-        <linearGradient id={`${id}-body`} x1="0.15" y1="0" x2="0.6" y2="1">
-          <stop offset="0" stopColor="#D8E4FF" />
-          <stop offset="0.3" stopColor="#8AA8FF" />
-          <stop offset="0.72" stopColor="#4D6BFE" />
-          <stop offset="1" stopColor="#22389F" />
+        <linearGradient id={`${id}-body`} x1="0.1" y1="0" x2="0.55" y2="1">
+          <stop offset="0" stopColor="#DCE7FF" />
+          <stop offset="0.26" stopColor="#93B2FF" />
+          <stop offset="0.62" stopColor="#4D6BFE" />
+          <stop offset="1" stopColor="#2C46CC" />
         </linearGradient>
         <linearGradient id={`${id}-belly`} x1="0" y1="0" x2="0.3" y2="1">
           <stop offset="0" stopColor="#FFFFFF" />
-          <stop offset="1" stopColor="#D6E4FF" />
+          <stop offset="1" stopColor="#DCE8FF" />
         </linearGradient>
         <linearGradient id={`${id}-tail`} x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0" stopColor="#93B2FF" />
-          <stop offset="1" stopColor="#3350D8" />
+          <stop offset="0" stopColor="#A2BCFF" />
+          <stop offset="1" stopColor="#3D5CE8" />
         </linearGradient>
         <linearGradient id={`${id}-fin`} x1="0" y1="0" x2="0.5" y2="1">
-          <stop offset="0" stopColor="#7FA0FF" />
-          <stop offset="1" stopColor="#2A44C8" />
+          <stop offset="0" stopColor="#8FADFF" />
+          <stop offset="1" stopColor="#3350DC" />
         </linearGradient>
         <clipPath id={`${id}-body-clip`}>
-          <ellipse cx="-14" cy="0" rx="92" ry="52" />
-          <path d="M70 -28 C88 -18 102 -8 106 0 C102 8 88 18 70 28 Z" />
+          <path d={BODY} />
         </clipPath>
       </defs>
 
       {/* Flukes, behind the body: two lobes with a notch between them. */}
       <path
-        d="M90 -6 C112 -38 152 -58 194 -52 C190 -22 162 8 124 22 C102 30 88 16 90 -6 Z"
+        d="M90 -12 C110 -44 144 -68 184 -64 C178 -32 148 -2 112 16 C98 22 88 8 90 -12 Z"
         fill={`url(#${id}-tail)`}
       />
       <path
-        d="M90 6 C112 38 152 58 194 52 C190 22 162 -8 124 -22 C102 -30 88 -16 90 6 Z"
+        d="M92 12 C116 6 148 -6 174 -26 C168 2 140 26 110 40 C96 46 86 32 92 12 Z"
         fill={`url(#${id}-tail)`}
       />
 
-      {/* Body: an oval that tapers into the tail stock. */}
-      <ellipse cx="-14" cy="0" rx="92" ry="52" fill={`url(#${id}-body)`} />
-      <path d="M70 -28 C88 -18 102 -8 106 0 C102 8 88 18 70 28 Z" fill={`url(#${id}-body)`} />
+      {/* Body: a rounded head tapering into the tail stock. */}
+      <path d={BODY} fill={`url(#${id}-body)`} />
       <g clipPath={`url(#${id}-body-clip)`}>
-        {/* Belly, clipped to the body so it never spills over the outline. */}
-        <ellipse cx="-34" cy="30" rx="70" ry="30" fill={`url(#${id}-belly)`} />
-        <path
-          className={css.backLit}
-          d="M-74 -34 C-44 -54 4 -58 46 -44"
-          fill="none"
-        />
+        {/* Belly and the pale patch around the eye, both clipped to the outline. */}
+        <ellipse cx="-44" cy="28" rx="64" ry="28" fill={`url(#${id}-belly)`} />
+        <ellipse cx="-70" cy="-4" rx="20" ry="16" fill={`url(#${id}-belly)`} />
+        <path className={css.backLit} d="M-84 -28 C-52 -50 -2 -56 44 -46" fill="none" />
       </g>
 
       {/* Pectoral fin and the face. */}
-      <path d="M-2 34 C14 54 20 76 10 92 C-6 82 -20 60 -24 40 Z" fill={`url(#${id}-fin)`} />
-      <path
-        className={css.mouth}
-        d="M-84 8 C-70 20 -52 22 -36 15"
-        fill="none"
-      />
-      <circle className={css.eye} cx="-58" cy="-12" r="7.5" />
-      <circle className={css.eyeGlint} cx="-60.5" cy="-14.5" r="2.6" />
+      <path d="M2 42 C16 60 20 82 10 96 C-6 84 -18 64 -22 46 Z" fill={`url(#${id}-fin)`} />
+      <path className={css.mouth} d="M-102 14 C-86 26 -64 28 -46 20" fill="none" />
+      <circle className={css.eye} cx="-74" cy="-8" r="6.5" />
+      <circle className={css.eyeGlint} cx="-76.5" cy="-10.5" r="2.3" />
     </g>
   )
 }

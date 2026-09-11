@@ -19,7 +19,7 @@
   --whale-loops: 2;
   position: relative;
   width: 340px;
-  height: 440px;
+  height: 460px;
   user-select: none;
 }
 
@@ -284,14 +284,14 @@
 }
 
 @keyframes whale-leap {
-  0% { transform: translateY(50px) rotate(5deg); }
-  12% { transform: translateY(28px) rotate(2deg); }
-  22% { transform: translateY(-14px) rotate(-3deg); }
-  40% { transform: translateY(-200px) rotate(-8deg) scale(1.02); }
-  56% { transform: translateY(-150px) rotate(-4deg); }
-  72% { transform: translateY(40px) rotate(6deg); }
-  86% { transform: translateY(50px) rotate(5deg); }
-  100% { transform: translateY(50px) rotate(5deg); }
+  0% { transform: translateY(86px) rotate(5deg); }
+  12% { transform: translateY(62px) rotate(2deg); }
+  22% { transform: translateY(10px) rotate(-3deg); }
+  40% { transform: translateY(-132px) rotate(-8deg) scale(1.02); }
+  56% { transform: translateY(-58px) rotate(-4deg); }
+  72% { transform: translateY(78px) rotate(6deg); }
+  86% { transform: translateY(86px) rotate(5deg); }
+  100% { transform: translateY(86px) rotate(5deg); }
 }
 
 @keyframes sky-breathe {
