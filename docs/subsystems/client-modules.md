@@ -8,7 +8,7 @@ Source: [`packages/client/modules/src/client/manifest.ts`](../../packages/client
 
 ## The wire
 
-The graph is the wire single source between the Node and browser halves. The host composes `WebBootEntry` rows and `WebBootBatch` descriptors from scanned packages, then contributes the registration facade, application preloads, bootstrap scripts, and graph global to the structured index-injection table before the Vite entry. The `global` row renders as `globalThis["__DSH_BOOT__"]` with `<` escaped so plugin-controlled strings cannot break out of the script element. A page without a valid manifest cannot boot: the browser parser rejects malformed rows or batches, unknown members, and entries without exactly one initial combo descriptor.
+The graph is the wire single source between the Node and browser halves. The host composes `WebBootEntry` rows and `WebBootBatch` descriptors from scanned packages, then contributes the registration facade, application preloads, bootstrap scripts, and graph global to the structured index-injection table before the Vite entry. Each row carries its Loader entry's `config` when that config is browser-plane data, so a client plugin is created with the configuration its cordis.yml row declares; a config holding a `!!js` expression belongs to the row's host half and is withheld, because the browser Loader would evaluate that expression against services it does not have. The `global` row renders as `globalThis["__DSH_BOOT__"]` with `<` escaped so plugin-controlled strings cannot break out of the script element. A page without a valid manifest cannot boot: the browser parser rejects malformed rows or batches, unknown members, and entries without exactly one initial combo descriptor.
 
 ```ts type-equiv
 /**
@@ -32,6 +32,17 @@ interface WebBootEntry {
   immediately?: boolean
   /** Non-baseline module specifiers this row requests; omitted when it requests none. */
   external?: string[]
+  /**
+   * Browser-plane configuration the Loader entry declares for this client
+   * plugin. The host withholds a config that is not browser-plane data: a
+   * `!!js` expression is authored against the Loader context that owns the row
+   * — the host's, in a shipped Web profile — and the browser Loader would
+   * evaluate it there, against services the browser does not have. The value
+   * travels as JSON, so non-JSON values do not survive the round trip — a
+   * function, `undefined`, or a symbol drops out, a `Date` becomes a string,
+   * and a `Map` or `Set` becomes an empty object.
+   */
+  config?: unknown
 }
 ```
 

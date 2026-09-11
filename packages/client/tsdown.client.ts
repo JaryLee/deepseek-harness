@@ -11,8 +11,7 @@
 import { readFile } from 'node:fs/promises'
 import { existsSync, globSync, readFileSync } from 'node:fs'
 import { isBuiltin } from 'node:module'
-import { basename, dirname, isAbsolute, relative, resolve as resolvePath, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { basename, dirname, isAbsolute, join, relative, resolve as resolvePath, sep } from 'node:path'
 import type { UserConfig } from 'tsdown'
 import { transform } from 'lightningcss'
 import { optionalStringArray } from './modules/src/client/manifest.ts'
@@ -77,7 +76,30 @@ const GENERATED_REMOTE = /^@deepseek-ai\/dsh-[a-z0-9]+(?:-[a-z0-9]+)*\/remote$/
  */
 const SKIP_WORKSPACE_BUILD: UserConfig = { entry: '' }
 
-const REPOSITORY_ROOT = fileURLToPath(new URL('../..', import.meta.url))
+const REPOSITORY_ROOT = repositoryRootFromInvocationDirectory()
+
+/**
+ * Locate the workspace root by ascending from the invocation directory to the
+ * unique `pnpm-workspace.yaml` owner. `import.meta.url` is unusable here:
+ * tsdown loads package configs through a bundler (unrun) that rewrites
+ * `import.meta.url` to the entry config's own file, which sits one directory
+ * level deeper than this module and breaks a `../..` derivation. tsdown runs
+ * with the repository root as the working directory during a workspace build
+ * and a member package directory during a focused build, so both ascend to the
+ * same root.
+ * @returns absolute path of the repository root.
+ */
+function repositoryRootFromInvocationDirectory(): string {
+  let current = resolvePath(process.cwd())
+  for (;;) {
+    if (existsSync(join(current, 'pnpm-workspace.yaml'))) return current
+    const parent = dirname(current)
+    if (parent === current) {
+      throw new Error(`tsdown.client: cannot locate the workspace root above ${current}`)
+    }
+    current = parent
+  }
+}
 
 /** Rebase a physical lib-relative source onto a browser URL that mirrors the repository directories. */
 function browserSourcePath(source: string, sourcemapPath: string): string {

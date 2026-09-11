@@ -8,7 +8,7 @@ Web 插件表：[dsh-client-modules](../../packages/client/modules) 中 client �
 
 ## wire
 
-图是 Node 半与浏览器半之间协议层的唯一真源。宿主从扫描到的包组合出 `WebBootEntry` 行与 `WebBootBatch` 描述，随后在 Vite entry 之前向结构化 index 注入表贡献 registration facade、application preload、bootstrap 脚本与图全局量。`global` 行渲染为 `globalThis["__DSH_BOOT__"]`，其中 `<` 已转义，插件可控的字符串因此无法逃出 script 元素。没有有效 manifest 的页面无法启动：浏览器解析器会拒绝畸形 row 或批次、未知成员，以及未恰好归属一个初始 combo 描述的 entry。
+图是 Node 半与浏览器半之间协议层的唯一真源。宿主从扫描到的包组合出 `WebBootEntry` 行与 `WebBootBatch` 描述，随后在 Vite entry 之前向结构化 index 注入表贡献 registration facade、application preload、bootstrap 脚本与图全局量。当某行的 `config` 属于浏览器平面数据时，该行携带其 Loader entry 的 `config`，因此客户端插件会以它 cordis.yml 行所声明的配置被创建；含 `!!js` 表达式的 config 属于该行的宿主半，会被保留不投递，因为浏览器 Loader 会拿它去求值浏览器并不具备的服务。`global` 行渲染为 `globalThis["__DSH_BOOT__"]`，其中 `<` 已转义，插件可控的字符串因此无法逃出 script 元素。没有有效 manifest 的页面无法启动：浏览器解析器会拒绝畸形 row 或批次、未知成员，以及未恰好归属一个初始 combo 描述的 entry。
 
 ```ts type-equiv
 /**
@@ -32,6 +32,17 @@ interface WebBootEntry {
   immediately?: boolean
   /** Non-baseline module specifiers this row requests; omitted when it requests none. */
   external?: string[]
+  /**
+   * Browser-plane configuration the Loader entry declares for this client
+   * plugin. The host withholds a config that is not browser-plane data: a
+   * `!!js` expression is authored against the Loader context that owns the row
+   * — the host's, in a shipped Web profile — and the browser Loader would
+   * evaluate it there, against services the browser does not have. The value
+   * travels as JSON, so non-JSON values do not survive the round trip — a
+   * function, `undefined`, or a symbol drops out, a `Date` becomes a string,
+   * and a `Map` or `Set` becomes an empty object.
+   */
+  config?: unknown
 }
 ```
 
