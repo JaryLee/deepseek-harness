@@ -85,10 +85,13 @@ function envelope(gain: AudioParam, start: number, peak: number, attack: number,
 }
 
 /** Slide one frequency through the given waypoints, each reached in turn. */
-function glide(frequency: AudioParam, start: number, points: readonly number[], step: number): void {
-  const first = points[0]
-  if (first === undefined) return
-  frequency.setValueAtTime(first, start)
+function glide(
+  frequency: AudioParam,
+  start: number,
+  points: readonly [number, ...number[]],
+  step: number,
+): void {
+  frequency.setValueAtTime(points[0], start)
   points.slice(1).forEach((value, index) => {
     frequency.exponentialRampToValueAtTime(value, start + step * (index + 1))
   })

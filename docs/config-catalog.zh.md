@@ -506,6 +506,35 @@ export interface ToolResultPruneConfig {
 
 来源：[`packages/compaction/compaction-tool-result-pruner/src/types.ts:5`](../packages/compaction/compaction-tool-result-pruner/src/types.ts)
 
+<a id="deepseek-aidsh-context-import"></a>
+
+## `@deepseek-ai/dsh-context-import`
+
+需要：`commands` · `agents`
+
+```ts config-catalog
+/** Import sources and rendering bounds. Invalid values fail plugin load. */
+export interface Config {
+  /** Root of the Codex session logs. Omit for `$CODEX_HOME/sessions`, else `~/.codex/sessions`. */
+  codexDir?: string
+  /** Root of the Claude Code project logs. Omit for `$CLAUDE_CONFIG_DIR/projects`, else `~/.claude/projects`. */
+  claudeDir?: string
+  /**
+   * Codex session index that carries the CLI's own conversation names.
+   * Omit for `$CODEX_HOME/session_index.jsonl`, else `~/.codex/session_index.jsonl`.
+   */
+  codexIndexPath?: string
+  /** Provider recorded on imported history when the foreign log names none. Omit to record the foreign tool. */
+  provider?: string
+  /** Model recorded on imported history when the foreign log names none. Omit to record `imported`. */
+  model?: string
+  /** Messages rendered verbatim at the tail of an injected transcript; earlier messages collapse to one line each. */
+  injectTailMessages?: number
+}
+```
+
+来源：[`packages/context/context-import/src/index.ts:45`](../packages/context/context-import/src/index.ts)
+
 <a id="deepseek-aidsh-cordis-host-runner"></a>
 
 ## `@deepseek-ai/dsh-cordis-host-runner`
@@ -3449,6 +3478,7 @@ export interface Config {
 - `@deepseek-ai/dsh-api-remotes` — 需要 `typertGateway`（[`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts)）
 - `@deepseek-ai/dsh-api-workspace-controller` — 需要 `typert` · `workspaceRegistry`（[`packages/api/workspace-controller/src/index.ts`](../packages/api/workspace-controller/src/index.ts)）
 - `@deepseek-ai/dsh-authorization` — 需要 `credentials`（[`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts)）
+- `@deepseek-ai/dsh-client-desktop-notify`（[`packages/client/desktop-notify/src/index.ts`](../packages/client/desktop-notify/src/index.ts)）
 - `@deepseek-ai/dsh-client-file-upload` — 需要 `agents` · `attachments` · `commands` · `connection`（[`packages/client/file-upload/src/index.ts`](../packages/client/file-upload/src/index.ts)）
 - `@deepseek-ai/dsh-client-locale`（[`packages/client/locale/src/index.ts`](../packages/client/locale/src/index.ts)）
 - `@deepseek-ai/dsh-client-modules` — 需要 `loader`（[`packages/client/modules/src/index.ts`](../packages/client/modules/src/index.ts)）
@@ -3459,8 +3489,10 @@ export interface Config {
 - `@deepseek-ai/dsh-client-ui-brand-official`（[`packages/client/ui-brand-official/src/index.ts`](../packages/client/ui-brand-official/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-chat`（[`packages/client/ui-chat/src/index.ts`](../packages/client/ui-chat/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-commands`（[`packages/client/ui-commands/src/index.ts`](../packages/client/ui-commands/src/index.ts)）
+- `@deepseek-ai/dsh-client-ui-context-import`（[`packages/client/ui-context-import/src/index.ts`](../packages/client/ui-context-import/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-conversation`（[`packages/client/ui-conversation/src/index.ts`](../packages/client/ui-conversation/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-cordis`（[`packages/extensions/ui-cordis/src/index.ts`](../packages/extensions/ui-cordis/src/index.ts)）
+- `@deepseek-ai/dsh-client-ui-cost-meter`（[`packages/client/ui-cost-meter/src/index.ts`](../packages/client/ui-cost-meter/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-deliverables` — 需要 `systemPrompt` · `connection` · `sessionQuery` · `sessionController` · `workspaceFiles` · `fs` · `sandboxPolicy`（[`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-directory-picker-browse`（[`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-directory-picker-native`（[`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts)）

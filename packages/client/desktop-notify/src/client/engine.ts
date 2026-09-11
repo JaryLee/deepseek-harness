@@ -51,6 +51,13 @@ export interface CompletionPorts {
   getPermission(): NotificationPermissionState
   /** Whether the page is a background tab or a minimized window. */
   isPageHidden(): boolean
+  /**
+   * Whether a finished session is one the user is told about. A subagent's
+   * finish belongs to the parent turn that scheduled it, so it is not; an
+   * unknown session is still reportable, because its row may simply be late.
+   * @param sessionId - session that stopped running.
+   */
+  isReportable(sessionId: SessionId): boolean
   /** Describe a finished Session, or undefined while its row is still missing. */
   resolveCompletion(sessionId: SessionId): NotifyNotice | undefined
   /** Describe a pending ask, naming the session by its row or a generic title. */
@@ -95,7 +102,9 @@ export class CompletionEngine {
 
   /**
    * Observe one agent status event. A stop opens the quiet window; whatever
-   * the session did in between is what the notice describes.
+   * the session did in between is what the notice describes. A subagent's stop
+   * is reported by its parent turn instead, and a stop for a session this page
+   * never saw running is not a completion observation at all.
    * @param sessionId - session whose status moved.
    * @param running - whether the agent is running.
    */
@@ -107,6 +116,7 @@ export class CompletionEngine {
       return
     }
     if (!this.running.delete(sessionId)) return
+    if (!this.ports.isReportable(sessionId)) return
     this.quiet.set(sessionId, this.ports.schedule(this.ports.getSettings().quietMs, () => {
       this.quiet.delete(sessionId)
       const notice = this.ports.resolveCompletion(sessionId)
@@ -116,11 +126,13 @@ export class CompletionEngine {
   }
 
   /**
-   * Announce every pending ask this page has not announced yet. Idempotent, so
-   * the durable list may call it again once a missing row arrives.
+   * Announce every pending ask this page has not announced yet, unless the
+   * user turned the question switch off. Idempotent, so the durable list may
+   * call it again once a missing row arrives.
    * @param asks - the current pending asks.
    */
   handlePending(asks: readonly PendingAsk[]): void {
+    if (!this.ports.getSettings().onQuestion) return
     for (const ask of asks) {
       if (this.announced.has(ask.key)) continue
       if (this.announce(this.ports.resolveWaiting(ask))) this.announced.add(ask.key)

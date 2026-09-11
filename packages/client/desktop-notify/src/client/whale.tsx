@@ -113,7 +113,7 @@ export function WhaleStage(props: WhaleStageProps) {
           role="status"
           aria-live="polite"
           title={props.openLabel}
-          onClick={props.onOpen}
+          onClick={() => { props.onOpen() }}
         >
           <span className={css.bubbleTitle}>{props.notice.title}</span>
           <span className={css.bubbleBody}>{props.notice.body}</span>
@@ -123,7 +123,7 @@ export function WhaleStage(props: WhaleStageProps) {
           type="button"
           className={css.close}
           aria-label={props.dismissLabel}
-          onClick={props.onDismiss}
+          onClick={() => { props.onDismiss() }}
         >
           <svg viewBox="0 0 12 12" aria-hidden="true">
             <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />

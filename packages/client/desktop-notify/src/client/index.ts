@@ -83,6 +83,14 @@ export function apply(ctx: ClientContext): void {
     return { sessionId, title: row.displayTitle, body: t('notify.finished') }
   }
 
+  // A subagent's finish is the parent turn's to report, because the parent is
+  // still running and will finish once its child's result is folded in. Its
+  // questions are not: those block the run on the user whichever session asked.
+  const isReportable = (sessionId: SessionId): boolean => {
+    const row = ctx.sessions.list.getSnapshot().byId[sessionId]
+    return row === undefined || (row.parentId === undefined && row.origin !== 'subagent')
+  }
+
   const describeWaiting = (ask: PendingAsk): NotifyNotice => {
     const row = ctx.sessions.list.getSnapshot().byId[ask.sessionId]
     return {
@@ -96,6 +104,7 @@ export function apply(ctx: ClientContext): void {
     getSettings: settings,
     getPermission: notificationPermission,
     isPageHidden: () => document.visibilityState === 'hidden',
+    isReportable,
     resolveCompletion: describeCompletion,
     resolveWaiting: describeWaiting,
     schedule: (delayMs, run) => {
@@ -103,7 +112,6 @@ export function apply(ctx: ClientContext): void {
       return () => { window.clearTimeout(handle) }
     },
     show: (notice) => {
-      if (typeof Notification === 'undefined') return false
       try {
         const toast = new Notification(notice.title, {
           body: notice.body,

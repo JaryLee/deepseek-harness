@@ -59,6 +59,11 @@
     - id: session-log-download
       name: '@deepseek-ai/dsh-session-log-export'
 
+    # Foreign session import: the `/import` command and the `contextImport`
+    # service the browser import dialog reads.
+    - id: context-import
+      name: '@deepseek-ai/dsh-context-import'
+
     # Session-header "Open In..." split button over the host application
     # resolution (macOS/Windows/Linux; a host with no resolved application
     # renders no button). Two halves: the host routes and the browser surface.
@@ -279,6 +284,10 @@
     - id: ui-deliverables
       name: '@deepseek-ai/dsh-client-ui-deliverables'
 
+    # Token usage and cost: the durable session cost line on the composer dock
+    # and the per-turn cost chip under each closing assistant message.
+    - id: ui-cost-meter
+      name: '@deepseek-ai/dsh-client-ui-cost-meter'
 
     - id: ui-workspace
       name: '@deepseek-ai/dsh-client-ui-workspace'
@@ -311,6 +320,11 @@
     - id: ui-jobs
       name: '@deepseek-ai/dsh-client-ui-jobs'
 
+    # Conversation import: the session-header action and its dialog, over the
+    # host `/import` command and the host `contextImport` service.
+    - id: ui-context-import
+      name: '@deepseek-ai/dsh-client-ui-context-import'
+
     # Goal surface: GoalBar in the input dock over the goal session projection.
     - id: ui-goal
       name: '@deepseek-ai/dsh-client-ui-goal'
@@ -337,6 +351,11 @@
     # cards. A namespace this deployment does not expose renders nothing.
     - id: ui-settings-plugins
       name: '@deepseek-ai/dsh-client-ui-settings-plugins'
+
+    # Desktop notifications: the breaching-whale notice in the page, an OS
+    # notification for what the page cannot show, and their settings card.
+    - id: desktop-notify
+      name: '@deepseek-ai/dsh-client-desktop-notify'
 
     # Plan control: the composer plan seat over the plan projection + /plan channel.
     - id: ui-plan

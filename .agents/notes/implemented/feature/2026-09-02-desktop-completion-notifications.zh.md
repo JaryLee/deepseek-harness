@@ -12,13 +12,13 @@ Web GUI 在窗口最小化或切换到其他标签页时，会话完成没有任
 
 `@deepseek-ai/dsh-client-desktop-notify` 作为 opt-in 客户端插件随 `dsh-web-app` bundle 发布。其 Node 半注册 `desktop-notify` 设置命名空间（`enabled`、`onlyWhenHidden`、`onQuestion`、`sound`、`quietMs`）；浏览器半为每个顶层会话完成、每条待处理交互播报一条通知，并在插件配置 slot 下注册设置卡片、在 shell overlay 座位下注册页面内提示。
 
-引擎是注入端口上的纯逻辑。它消费转发的 `api-session/status` 流；每个会话的首次观察只记录 running 位（页面加载与重连回放不能误报），观察到的 running→idle 边沿启动 `quietMs` 定时器（默认 1500 ms），之前的 false→true 边沿取消它——这就是目标轮次与排队轮次的抑制器。设置 `enabled`、权限 `granted`（仅系统通知面需要）、可见性与顶层性（`origin !== 'subagent'`、无 `parentId`）决定这一次播报。列表快照在挂载与 `connection/reset` 时给引擎播种，因此页面加载时已在运行的会话仍能在完成时触发；播种只是快照，绝不构造边沿。
+引擎是注入端口上的纯逻辑。它消费转发的 `api-session/status` 流；每个会话的首次观察只记录 running 位（页面加载与重连回放不能误报），观察到的 running→idle 边沿启动 `quietMs` 定时器（默认 1500 ms），之前的 false→true 边沿取消它——这就是目标轮次与排队轮次的抑制器。设置 `enabled`、权限 `granted`（仅系统通知面需要）、可见性与可播报性（子代理的完成属于调度它的父轮次，其提问不属于）决定这一次播报。列表快照在挂载与 `connection/reset` 时给引擎播种，因此页面加载时已在运行的会话仍能在完成时触发；播种只是快照，绝不构造边沿，而列表行未知的会话仍算可播报，因为它的行可能只是还没到。
 
 引擎还镜像客户端的待处理交互快照（`uiSession.pendingInteractions`）——GUI 正在等什么的对象层记录——因此不必加入 `user-questions/request` 或 `approval/request` 远端瀑布，后者的监听链被展示插件抢占，任何观察者都无法保证排序。挂载时已在等待的交互播报一次（页面启动阶段到达的提问不能被当成回放吞掉）；其后出现的交互立即通知（没有安静窗口——运行阻塞在回答上），每条交互 key 一次，已回答的交互清除标记使下一条重新通知。kind 选择文案（`notify.waitingAnswer` / `notify.waitingApproval` / `notify.waitingPlan`）；子代理会话也会通知，因为其提问同样阻塞在你身上。
 
-播报按页面状态分流：不可见页面弹系统通知，可见页面把页面内鲸鱼提示渲染进 `shell.overlay`（浅角度水面，带焦散光纹、高光碎光、水膜、浪圈与水花；来自 `ui-primitives` 的官方标识画两份——一份裁在水面之上并打光，一份裁在水面之下做模糊、压暗、错位折射——共用同一次透视跃起，因此真的从水里破水而出；会话标题与状态文案放在玻璃水泡里；由自身保持定时器回收；`prefers-reduced-motion` 下静态呈现）。开启 `sound` 时，可见页面还会播放 Web Audio 合成音——带回声的长鲸鸣、破水声与气泡尾音、两声海鸥叫，不随包发布音频素材；不可见页面则由系统通知携带系统提示音。只有关闭 `onlyWhenHidden` 时才同时再弹系统通知。页面内提示不需要浏览器权限，因此 Notification API 被拒绝或不支持时照常显示。系统通知携带品牌标识作为 `icon`——由官方几何在主题的 DeepSeek 蓝里栅格化并逐页缓存，canvas 或主题 token 不可用时回退到外壳 favicon；Windows 会以站点图标覆盖该字段。
+播报按页面状态分流：不可见页面弹系统通知，可见页面把页面内鲸鱼提示渲染进 `shell.overlay`（半透明水面，固定水线之后是焦散光纹、高光碎光、浪圈与上升的气泡；来自 `ui-primitives` 的官方标识画两份——一份裁在水面之上并打光，一份裁在水面之下做模糊、压暗与纵向压缩——共用一次两跃动画，因此真的从水里破水而出；会话标题与状态文案放在水泡里，停留七秒；`prefers-reduced-motion` 下静态呈现）。开启 `sound` 时，可见页面还会播放 Web Audio 合成音——带回声的长鲸鸣、破水的水花与气泡尾音、两声海鸥叫，不随包发布音频素材；不可见页面则由系统通知携带系统提示音。只有关闭 `onlyWhenHidden` 时才同时再弹系统通知。页面内提示不需要浏览器权限，因此 Notification API 被拒绝或不支持时照常显示。系统通知携带品牌标识作为 `icon`——由官方几何在 DeepSeek 品牌蓝里栅格化并逐页缓存，canvas 不可用时回退到外壳 favicon；Windows 会以站点图标覆盖该字段。
 
-展示内容从会话列表行（`displayTitle`、拓扑）与实时事件窗口（最后一条 `assistant/message`，经共享 plain-text 提取器剥离 Markdown，截断到 140 字符；无文本时用回退文案）解析。点击通知会聚焦窗口并打开该会话。设置卡片通过标准客户端 settings scope 读写命名空间，并在开关点击时发起浏览器权限请求——授权必须来自用户手势；请求被拒时保持当前状态，使后续重试仍可成功，API 不存在（非安全上下文）时在卡片上报告 `unsupported`。
+展示内容从会话列表行解析：通知用 `displayTitle` 指认会话——列表行还没到时用一条通用等待文案指认——第二行文案由浏览器半自己的字典给出，每个状态一条（`notify.finished`、`notify.waitingAnswer`、`notify.waitingApproval`、`notify.waitingPlan`）。点击通知会聚焦窗口并打开该会话。设置卡片通过标准客户端 settings scope 读写命名空间，并在卡片自己的控件上发起浏览器权限请求——授权必须来自用户手势；请求被拒时保持当前状态，使后续重试仍可成功，API 不存在（非安全上下文）时在卡片上报告 `unsupported`。
 
 ## Alternatives considered
 
@@ -36,8 +36,8 @@ Web GUI 在窗口最小化或切换到其他标签页时，会话完成没有任
 
 ## Consequences
 
-GUI 获得 Codex 风格的 toast，且每个会话以 OS 级 `tag` 去重（后续 toast 替换同一会话的旧 toast），并新增提问 toast——运行阻塞在用户时立即到达——以及可见页面的鲸鱼提示。功能是 opt-in，不会惊吓现有用户。它依赖浏览器保持打开——关闭标签页即结束通知——系统通知面还依赖安全上下文，卡片上已注明；页面内提示两者都不需要。安静窗口按会话计，所以恢复会话若下一次运行在 `quietMs` 之后才开始仍会多出一条 toast；N 个会话完成时弹出 N 条；提问 toast 每条交互一条。插件不追加任何会话事件：模型可见与持久化内容均无变化。
+GUI 获得 Codex 风格的 toast，且每个会话以 OS 级 `tag` 去重（后续 toast 替换同一会话的旧 toast），并新增提问 toast——运行阻塞在用户时立即到达——以及可见页面的鲸鱼提示。功能是 opt-in，不会惊吓现有用户。它依赖浏览器保持打开——关闭标签页即结束通知——系统通知面还依赖安全上下文，卡片上已注明；页面内提示两者都不需要。安静窗口按会话计，所以恢复会话若下一次运行在 `quietMs` 之后才开始仍会多出一条 toast；N 个会话完成时弹出 N 条；提问 toast 每条交互一条。列表行尚未到达页面时观察到的完成会随列表变化重试，四次后放弃，因此始终不来的行不会留下通知。插件不追加任何会话事件：模型可见与持久化内容均无变化。
 
 ## Verification
 
-引擎 spec 钉住边沿检测、首次观察播种、安静窗口取消、按 key 的提问去重、隐藏/可见分流与免权限的页面内通道；卡片与 controller spec 钉住 scope 桥接、权限手势流程与释放；whale store spec 钉住保持窗口、替换、消失与释放，提示 spec 钉住渲染的标识、文案与点击打开；apply spec 用 Notification double 端到端驱动转发的 `api-session/status` 流与待处理交互快照（toast 构造与品牌图标、点击打开、kind 文案、构造失败遏制、重连重新播种），并覆盖 overlay 注册与其页面内提示。每个 `src` 文件保持逐文件 100% 覆盖。
+引擎 spec 钉住边沿检测、首次观察播种、安静窗口取消、子代理完成的可播报性过滤、按 key 的提问去重、隐藏/可见分流、免权限的页面内通道，以及列表行到达后的重试与上限；设置与权限 spec 钉住线路解码器与无需手势的权限读取；卡片与 controller spec 钉住 scope 桥接、权限手势流程与释放；whale store spec 钉住保持窗口、替换、消失与释放，提示 spec 钉住渲染的标识、文案、点击打开与关闭；音效与图标 spec 钉住挂起上下文的跳过、合成图与栅格化的品牌标识及其 favicon 兜底；apply spec 用 Notification double 端到端驱动转发的 `api-session/status` 流与待处理交互快照（toast 构造与品牌图标、点击打开、kind 文案、构造失败遏制、重连重新播种、子代理抑制），并覆盖两处注册与其页面内提示。每个 `src` 文件保持逐文件 100% 覆盖。

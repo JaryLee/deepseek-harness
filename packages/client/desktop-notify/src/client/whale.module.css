@@ -71,6 +71,7 @@
   left: 14%;
   height: 26px;
   border-radius: 50%;
+  corner-shape: round;
   background: radial-gradient(50% 50% at 50% 50%, rgb(3 6 28 / 55%), transparent 72%);
   filter: blur(4px);
 }
@@ -129,6 +130,7 @@
   left: -14px;
   height: 4px;
   border-radius: 50%;
+  corner-shape: round;
   background: linear-gradient(
     90deg,
     transparent,
@@ -159,6 +161,7 @@
   margin-left: -31px;
   border: 1.5px solid rgb(206 224 255 / 75%);
   border-radius: 50%;
+  corner-shape: round;
   opacity: 0;
   animation: wake-out 1.5s ease-out both;
 }
@@ -182,6 +185,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
+  corner-shape: round;
   background: radial-gradient(circle at 35% 30%, #fff, rgb(150 186 255 / 85%));
   opacity: 0;
   animation: drop-fall 1.05s ease-in both;
@@ -208,6 +212,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
+  corner-shape: round;
   background: radial-gradient(circle at 34% 30%, rgb(255 255 255 / 95%), rgb(150 190 255 / 35%));
   opacity: 0;
   animation: orbs-rise 3.4s linear infinite;
@@ -289,6 +294,7 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
+  corner-shape: round;
   place-items: center;
   background: rgb(14 22 60 / 45%);
   color: #e8efff;
