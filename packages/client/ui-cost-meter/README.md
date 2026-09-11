@@ -64,4 +64,4 @@ None.
 
 </details>
 
-**Runtime invariant:** The companion installs no check. The dictionaries and the two registrations are effect-owned with disposal proven by the plugin's specs, and this package owns no mutable state that could diverge from another source.
+**Runtime invariant:** No companion is published. This package owns no mutable state: the dictionaries and the two slot registrations are effect-owned, and their disposal is proven by the plugin's specs.

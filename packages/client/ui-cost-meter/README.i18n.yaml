@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-cost-meter/README.md
-README.md: d5ba8a2f526dbf02cd8be1bfea6b67facafed877
-README.zh.md: 7b8c0f1bf8784b9fe44876ddcd6a3dcbf911307d
+README.md: b40d9e61f78a65b6c89d498929ab770fba78647f
+README.zh.md: 055974dae92be6d5e5bcc4df8dda003284aca8ef
