@@ -20,7 +20,7 @@
 }
 
 .stage {
-  --cycle: 9s;
+  --cycle: 7.6s;
   --ease-breach: cubic-bezier(0.35, 0, 0.65, 1);
   position: relative;
   width: 420px;
@@ -81,32 +81,52 @@
    The body crosses the waterline twice, at 17% and 54%. */
 @keyframes breach {
   0% {
-    transform: translate3d(0, 44%, 0) rotate(8deg) scale(0.96);
-    animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1);
+    transform: translate3d(0, 102%, 0) rotate(14deg) scale(0.9);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.7, 0.6);
   }
-  9% {
-    transform: translate3d(-1cqw, 36%, 0) rotate(6deg) scale(0.97);
-    animation-timing-function: cubic-bezier(0.2, 0.75, 0.3, 1);
+  8% {
+    transform: translate3d(0, 88%, 0) rotate(12deg) scale(0.92);
+    opacity: 0.4;
+    animation-timing-function: cubic-bezier(0.25, 0.6, 0.35, 1);
   }
-  26% {
-    transform: translate3d(-3cqw, -16%, 0) rotate(-5deg) scale(1.015);
-    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  16% {
+    transform: translate3d(-1.2cqw, 44%, 0) rotate(5deg) scale(0.97);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  24% {
+    transform: translate3d(-2cqw, 0, 0) rotate(-1deg) scale(1);
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1);
   }
   36% {
-    transform: translate3d(-3.4cqw, -18%, 0) rotate(-6.5deg) scale(1.02);
-    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.6);
+    transform: translate3d(-3cqw, -18%, 0) rotate(-6deg) scale(1.025);
   }
-  50% {
-    transform: translate3d(-2cqw, -2%, 0) rotate(-1deg) scale(1);
-    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5);
+  46% {
+    transform: translate3d(-2.8cqw, -23%, 0) rotate(-7deg) scale(1.03);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.6, 0.7);
   }
-  64% {
-    transform: translate3d(0, 44%, 0) rotate(9deg) scale(0.96);
-    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  58% {
+    transform: translate3d(-1.4cqw, -9%, 0) rotate(-2deg) scale(1.015);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.6);
   }
-  76% { transform: translate3d(0, 36%, 0) rotate(5deg) scale(0.97); }
-  88% { transform: translate3d(0, 48%, 0) rotate(10deg) scale(0.955); }
-  100% { transform: translate3d(0, 44%, 0) rotate(8deg) scale(0.96); }
+  70% {
+    transform: translate3d(-0.6cqw, 26%, 0) rotate(6deg) scale(0.995);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.7, 0.7);
+  }
+  80% {
+    transform: translate3d(0, 70%, 0) rotate(15deg) scale(0.955);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 0.8);
+  }
+  90% {
+    transform: translate3d(0, 96%, 0) rotate(21deg) scale(0.915);
+    opacity: 0.55;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.7, 0.8);
+  }
+  100% {
+    transform: translate3d(0, 102%, 0) rotate(14deg) scale(0.9);
+    opacity: 0;
+  }
 }
 
 /* ---------- the animated sea ----------
@@ -274,19 +294,19 @@
 }
 
 @keyframes splash-launch {
-  0%, 7% { opacity: 0; transform: translate3d(0, 3.5%, 0) scale(0.4, 0.24); }
-  12% { opacity: 0.9; transform: translate3d(0, 0.6%, 0) scale(0.76, 0.7); }
-  17% { opacity: 1; transform: translate3d(0, -0.5%, 0) scale(0.94, 0.94); }
-  26% { opacity: 0.62; transform: translate3d(0, -1.6%, 0) scale(1.06, 0.94); }
-  38%, 100% { opacity: 0; transform: translate3d(0, -3%, 0) scale(1.16, 0.8); }
+  0%, 12% { opacity: 0; transform: translate3d(0, 3.5%, 0) scale(0.4, 0.24); }
+  19% { opacity: 0.9; transform: translate3d(0, 0.6%, 0) scale(0.76, 0.7); }
+  25% { opacity: 1; transform: translate3d(0, -0.5%, 0) scale(0.96, 0.96); }
+  34% { opacity: 0.6; transform: translate3d(0, -1.8%, 0) scale(1.08, 0.94); }
+  46%, 100% { opacity: 0; transform: translate3d(0, -3%, 0) scale(1.18, 0.8); }
 }
 
 @keyframes splash-land {
-  0%, 45% { opacity: 0; transform: translate3d(0, 3.5%, 0) scale(0.36, 0.2); }
-  49% { opacity: 0.92; transform: translate3d(0, 0.6%, 0) scale(0.74, 0.64); }
-  54% { opacity: 1; transform: translate3d(0, -0.4%, 0) scale(0.92, 0.88); }
-  62% { opacity: 0.58; transform: translate3d(0, -1.4%, 0) scale(1.04, 0.9); }
-  76%, 100% { opacity: 0; transform: translate3d(0, -2.6%, 0) scale(1.16, 0.78); }
+  0%, 62% { opacity: 0; transform: translate3d(0, 3.5%, 0) scale(0.36, 0.2); }
+  70% { opacity: 0.86; transform: translate3d(0, 0.6%, 0) scale(0.74, 0.64); }
+  78% { opacity: 1; transform: translate3d(0, -0.4%, 0) scale(0.94, 0.9); }
+  88% { opacity: 0.55; transform: translate3d(0, -1.6%, 0) scale(1.06, 0.92); }
+  98%, 100% { opacity: 0; transform: translate3d(0, -2.8%, 0) scale(1.18, 0.78); }
 }
 
 /* ---------- droplets: six with each burst ---------- */
@@ -313,8 +333,8 @@
   0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.35); }
   4% { opacity: 0; }
   9% { opacity: 1; }
-  24% { opacity: 1; transform: translate3d(var(--dx), var(--dy), 0) scale(1); }
-  38%, 100% { opacity: 0; transform: translate3d(calc(var(--dx) * 1.5), 20cqw, 0) scale(0.75); }
+  26% { opacity: 1; transform: translate3d(var(--dx), var(--dy), 0) scale(1); }
+  40%, 100% { opacity: 0; transform: translate3d(calc(var(--dx) * 1.5), 20cqw, 0) scale(0.75); }
 }
 
 @keyframes sky-breathe {
@@ -326,10 +346,9 @@
 
 .bubble {
   position: absolute;
-  top: 4%;
-  left: 5%;
-  width: 62%;
-  min-width: 232px;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 286px;
   pointer-events: none;
   animation:
     notice-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,

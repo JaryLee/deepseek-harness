@@ -123,6 +123,11 @@ export function WhaleStage(props: WhaleStageProps) {
     <div className={css.layer} data-whale-scene={props.notice.sessionId}>
       <div className={css.stage}>
         <img className={css.backdrop} src={ART_BACKDROP} alt="" aria-hidden="true" />
+        <div className={css.whalePos} style={boxOf(ART_WHALE)}>
+          <div className={css.whaleBob}>
+            <img className={css.whale} src={ART_WHALE.src} alt="" aria-hidden="true" data-whale-mark="whale" />
+          </div>
+        </div>
         <div className={css.animatedSea} aria-hidden="true">
           {WAVES.map(wave => (
             <div key={wave.key} className={`${css.waveLayer} ${css[wave.className]}`}>
@@ -134,11 +139,6 @@ export function WhaleStage(props: WhaleStageProps) {
           ))}
         </div>
         <div className={css.seaShimmer} aria-hidden="true" />
-        <div className={css.whalePos} style={boxOf(ART_WHALE)}>
-          <div className={css.whaleBob}>
-            <img className={css.whale} src={ART_WHALE.src} alt="" aria-hidden="true" data-whale-mark="whale" />
-          </div>
-        </div>
         <img className={`${css.splash} ${css.splashLaunch}`} style={boxOf(ART_SPLASH)} src={ART_SPLASH.src} alt="" aria-hidden="true" />
         <img className={`${css.splash} ${css.splashLand}`} style={boxOf(ART_SPLASH)} src={ART_SPLASH.src} alt="" aria-hidden="true" />
         <div className={css.droplets} aria-hidden="true">
